@@ -2,9 +2,9 @@
   "type": "module",
   "name": "day_2",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "solution.js",
   "scripts": {
-    "solve": "node index.js"
+    "solve": "node solution.js"
   },
   "keywords": [],
   "author": "",
