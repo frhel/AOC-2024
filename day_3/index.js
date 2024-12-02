@@ -3,7 +3,7 @@ import chalk from 'chalk'; // Colorizes console output
 
 // *************************************************
 // ************ Define Global Variables ************
-const _DAY = 0;
+const _DAY = 3;
 const _TIMERS = {'global': performance.now(), 'part_1': '', 'part_2': ''};
 const _STARS = {
 	'filled': '★',
@@ -70,7 +70,9 @@ log_answer(_ANSWERS.part_1, 1);
 // ************ Part 2 Solution ************
 _TIMERS.part_2 = performance.now();
 
-// Code here
+let p2_reports = _REPORTS.slice();
+_ANSWERS.part_2 = p2_reports.map((cur) => check_permutations(cur))
+						    .filter(x => x).length;
 
 log_answer(_ANSWERS.part_2, 2);
 // ************ End of Part 2 ************
