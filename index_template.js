@@ -12,11 +12,6 @@ const _STARS = {
 _STARS.line_short = _STARS.filled.repeat(20);
 _STARS.line_long = _STARS.filled.repeat(56);
 
-const _ANSWERS = {
-	'part_1': '**-',
-	'part_2': '**-'
-}
-
 console.info(chalk.blue(`\n${_STARS.line_long}`));
 console.info(chalk.blue(`${_STARS.line_short} ${chalk.bold.white('DAY .-[',_DAY,']-.')} ${_STARS.line_short}`));
 console.info(chalk.blue(`${_STARS.line_long}\n`));
@@ -45,10 +40,21 @@ let _REPORTS = input.split('\n')
 // ************ End of Input Parsing ************
 
 
-// *************************************************
-// ************ Define Common Functions ************
+// ***************************************************
+// ************ Define Solution Functions ************
 
-// ************ End of Common Functions ************
+// ************ End of Solution Functions ************
+
+// **********************************************
+// ************ Define Solution Vars ************
+let _ANSWERS = {
+	'part_1': '**-',
+	'part_2': '**-'
+}
+
+// Add any additional solution variables here
+
+// ************ End of Solution Vars ************
 
 
 // *****************************************
