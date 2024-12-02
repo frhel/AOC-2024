@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "name": "day_2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "solve": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chalk": "^5.3.0"
+  }
+}
