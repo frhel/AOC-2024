@@ -83,7 +83,7 @@ function solvePart2(data) {
 function parseInput(input) {
 	// Grab all patterns of 'mul(a,b)' or 'do()' or 'don't()' where a and b are integers
 	// More info on regular expressions here: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
-	// If you want a playground to build your regular expressions, check this out: https://regexr.com/
+	// If you want a playground to build your own regular expressions, check this out: https://regexr.com/
 	let regex = /mul[(]{1}[0-9]+,[0-9]+[)]{1}|do\(\)|don\'t\(\)/g;
 	return input.match(regex)
 				// Map over the array of patterns and return the parsed data
