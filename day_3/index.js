@@ -30,7 +30,6 @@ printTotalTime();
 /**
  * Solves part 1 of the challenge
  * @param {Array} data - The parsed input data
- * @returns {Number} - The answer to the challenge
  */
 function solvePart1(data) {
 	_TIMERS.part_1 = performance.now();
@@ -50,7 +49,6 @@ function solvePart1(data) {
 /**
  * Solves part 2 of the challenge
  * @param {Array} data - The parsed input data
- * @returns {Number} - The answer to the challenge
  */
 function solvePart2(data) {
 	_TIMERS.part_2 = performance.now();
