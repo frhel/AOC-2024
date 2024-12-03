@@ -13,10 +13,7 @@ const _STARS = {'filled': '★', 'empty': '☆'};
 _STARS.line_short = _STARS.filled.repeat(20);
 _STARS.line_long = _STARS.filled.repeat(56);
 
-let _ANSWERS = {
-	'part_1': '**-',
-	'part_2': '**-'
-}
+let _ANSWERS = {'part_1': '**-','part_2': '**-'};
 
 printDayTitlePlate(_DAY);
 
@@ -42,10 +39,7 @@ function solvePart1(data) {
 	_TIMERS.part_1 = performance.now();
 
 	return data.reduce((acc, item) => {
-		if (item === 'do()' || item === 'don\'t()') {
-			return acc;
-		}
-		return acc + item[0] * item[1];
+  return (item === 'do()' || item === 'don\'t()') ? acc : acc + item[0] * item[1];
 	}, 0);
 }
 
