@@ -21,12 +21,10 @@ printDayTitlePlate(_DAY);
 let input = readInputFile();
 // ************ End of Initalization ***********
 
-
 // ************ Main Logic Stuff ************
-let _CALC = true;
 let data = parseInput(input);
-log_answer(solvePart1(data), 1);
-log_answer(solvePart2(data), 2);
+solvePart1(data);
+solvePart2(data);
 printTotalTime();
 
 // ************ Solution Functions ************
@@ -38,9 +36,13 @@ printTotalTime();
 function solvePart1(data) {
 	_TIMERS.part_1 = performance.now();
 
-	return data.reduce((acc, item) => {
-  return (item === 'do()' || item === 'don\'t()') ? acc : acc + item[0] * item[1];
+	let answer = data.reduce((acc, item) => {
+		// Return the sum of the multiplication of the two numbers only if the item is not 'do()' or 'don't()'
+		// In the case of 'do()' or 'don't()', return the accumulator as is and move on to the next item
+  		return item === 'do()' || item === 'don\'t()' ? acc : acc + item[0] * item[1];
 	}, 0);
+
+	log_answer(answer, 1);
 }
 
 /**
@@ -51,14 +53,23 @@ function solvePart1(data) {
 function solvePart2(data) {
 	_TIMERS.part_2 = performance.now();
 
-	return data.reduce((acc, item) => {
-		if (item === 'do()' || item === 'don\'t()') {
-			_CALC = item === 'do()' ? true : false;
-		} else if (_CALC) {
-			acc += item[0] * item[1];
-		}
-		return acc;
+	// Create the flag can_multi to keep track of whether to multiply the two numbers or not
+	let can_multi = true;
+	let answer = data.reduce((acc, item) => {
+		// if 'do()' or 'don't()' set the flag accordingly, otherwise keep the flag as is
+		// If you're not sure about ternary operators, the following comments explain the
+		// same logic in an if-else pseudo code:
+		// 	if item == 'do()' then can_multi = true
+		// 	else if item == 'don't()' then can_multi = false
+		// 	else can_multi = can_multi
+		can_multi = item === 'do()' ? true : item === 'don\'t()' ? false : can_multi;
+
+		// Return the sum of the multiplication of the two numbers only if the flag is true and the item is not a string
+		// In the case of 'do()' or 'don't()', return the accumulator as is and move on to the next item
+		return (can_multi && typeof item !== 'string') ? acc + item[0] * item[1] : acc;
 	}, 0)
+
+	log_answer(answer, 2);
 }
 
 
@@ -68,13 +79,20 @@ function solvePart2(data) {
  * @returns {Array} - The parsed input
  */
 function parseInput(input) {
+	// Grab all patterns of 'mul(a,b)' or 'do()' or 'don't()' where a and b are integers
 	let regex = /mul[(]{1}[0-9]+,[0-9]+[)]{1}|do\(\)|don\'t\(\)/g;
 	return input.match(regex)
 				.map((line) => {
+					// Leave 'do()' and 'don't()' as is and return early to move on to the next line
 					if (line === 'do()' || line === 'don\'t()') {
 						return line;
 					}
+
+					// In any other case assume the line is 'mul(a,b)' and finish parsing the line
+					// Extract the two numbers from the 'mul(a,b)' pattern where a and b are integers
 					let [a, b] = line.match(/[0-9]+/g);
+
+					// Return the two numbers as an array of integers
 					return [parseInt(a), parseInt(b)];
 				});
 }
