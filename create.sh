@@ -23,10 +23,22 @@ npm init es6 -y
 npm install chalk
 
 # Copy index.js template
-cp ../index_template.js index.js
+cp ../solution_template.js solution.js
 
 # Change day number in index.js from const day = 0; to const day = $day;
 if [ $day -lt 10 ]; then
 	day="0$day"
 fi
-sed -i "s/const _DAY = '0';/const _DAY = '$day';/" index.js
+sed -i "s/const _DAY = '0';/const _DAY = '$day';/" solution.js
+
+# Change the main script name in package.json
+sed -i "s/\"main\": \"index.js\",/\"main\": \"solution.js\",/" package.json
+
+# Set up the npm run scripts
+sed -i "s/\"dev\": \"\"/\"example\": \"nodemon --exec 'node --experimental-modules solution.js < ex.txt'\"/" package.json
+sed -i "s/\"test\": \"\"/\"solution\": \"node --experimental-modules solution.js < in.txt\"/" package.json
+
+code solution.js
+code in.txt
+code ex.txt
+npm run example

@@ -8,6 +8,5 @@ Easily create a new project for each day that includes a ready-to-go solution te
 
 ## Running a solution
 - Navigate to the directory of the day you want to run the solution for.
-- Run ```npm run solve``` to run the solution for the day.
- - Alternatively, run ```nodemon``` in watch mode to run the solution for the day and automatically reload the solution when the source code changes. Nodemon can be installed globally by running ```npm install -g nodemon```.
- - Alternatively, run ```node solution.js``` to run the solution for the day.
+- Run ```npm run example``` to run the example input as a nodemon process.
+- Run ```npm run solution``` to run the actual input once as a node process.
