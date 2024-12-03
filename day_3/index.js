@@ -43,7 +43,6 @@ function solvePart1(data) {
 
 	return data.reduce((acc, item) => {
 		if (item === 'do()' || item === 'don\'t()') {
-			console.log(acc)
 			return acc;
 		}
 		return acc + item[0] * item[1];
