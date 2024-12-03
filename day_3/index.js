@@ -17,11 +17,10 @@ let _ANSWERS = {'part_1': '**-','part_2': '**-'};
 
 printDayTitlePlate(_DAY);
 
-// Read the input file
-let input = readInputFile();
 // ************ End of Initalization ***********
 
 // ************ Main Logic Stuff ************
+let input = readInputFile();
 let data = parseInput(input);
 solvePart1(data);
 solvePart2(data);
@@ -36,9 +35,12 @@ printTotalTime();
 function solvePart1(data) {
 	_TIMERS.part_1 = performance.now();
 
+	// Reduce the data array to a single value. More info on reduce here:
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
 	let answer = data.reduce((acc, item) => {
 		// Return the sum of the multiplication of the two numbers only if the item is not 'do()' or 'don't()'
 		// In the case of 'do()' or 'don't()', return the accumulator as is and move on to the next item
+		// More info on ternary operators here: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
   		return item === 'do()' || item === 'don\'t()' ? acc : acc + item[0] * item[1];
 	}, 0);
 
@@ -55,13 +57,13 @@ function solvePart2(data) {
 
 	// Create the flag can_multi to keep track of whether to multiply the two numbers or not
 	let can_multi = true;
+
+	// Reduce the data array to a single value. More info on reduce here:
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
 	let answer = data.reduce((acc, item) => {
 		// if 'do()' or 'don't()' set the flag accordingly, otherwise keep the flag as is
-		// If you're not sure about ternary operators, the following comments explain the
-		// same logic in an if-else pseudo code:
-		// 	if item == 'do()' then can_multi = true
-		// 	else if item == 'don't()' then can_multi = false
-		// 	else can_multi = can_multi
+		// If you're not sure about ternary operators, check this link:
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
 		can_multi = item === 'do()' ? true : item === 'don\'t()' ? false : can_multi;
 
 		// Return the sum of the multiplication of the two numbers only if the flag is true and the item is not a string
@@ -80,8 +82,12 @@ function solvePart2(data) {
  */
 function parseInput(input) {
 	// Grab all patterns of 'mul(a,b)' or 'do()' or 'don't()' where a and b are integers
+	// More info on regular expressions here: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+	// If you want a playground to build your regular expressions, check this out: https://regexr.com/
 	let regex = /mul[(]{1}[0-9]+,[0-9]+[)]{1}|do\(\)|don\'t\(\)/g;
 	return input.match(regex)
+				// Map over the array of patterns and return the parsed data
+				// More info on map here: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
 				.map((line) => {
 					// Leave 'do()' and 'don't()' as is and return early to move on to the next line
 					if (line === 'do()' || line === 'don\'t()') {
@@ -90,6 +96,8 @@ function parseInput(input) {
 
 					// In any other case assume the line is 'mul(a,b)' and finish parsing the line
 					// Extract the two numbers from the 'mul(a,b)' pattern where a and b are integers
+					// This uses destructuring assignment to extract the two numbers from the line
+					// More info on destructuring assignment here: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 					let [a, b] = line.match(/[0-9]+/g);
 
 					// Return the two numbers as an array of integers
