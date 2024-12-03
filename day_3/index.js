@@ -32,7 +32,7 @@ printTotalTime();
  * @param {Array} data - The parsed input data
  */
 function solvePart1(data) {
-	_TIMERS.part_1 = performance.now();
+	_TIMERS.part_1 = performance.now(); // Start the timer for part 1
 
 	// Reduce the data array to a single value. More info on reduce here:
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
@@ -51,7 +51,7 @@ function solvePart1(data) {
  * @param {Array} data - The parsed input data
  */
 function solvePart2(data) {
-	_TIMERS.part_2 = performance.now();
+	_TIMERS.part_2 = performance.now(); // Start the timer for part 2
 
 	// Create the flag can_multi to keep track of whether to multiply the two numbers or not
 	let can_multi = true;
