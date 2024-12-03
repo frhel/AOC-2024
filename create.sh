@@ -26,4 +26,7 @@ npm install chalk
 cp ../index_template.js index.js
 
 # Change day number in index.js from const day = 0; to const day = $day;
-sed -i "s/const _DAY = 0;/const _DAY = $day;/" index.js
+if [ $day -lt 10 ]; then
+	day="0$day"
+fi
+sed -i "s/const _DAY = '0';/const _DAY = '$day';/" index.js

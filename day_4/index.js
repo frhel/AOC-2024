@@ -3,7 +3,7 @@ import fs from 'fs'; // File system module
 import chalk from 'chalk'; // Colorizes console output
 
 // Define Generic Global Variables
-const _DAY = '0';
+const _DAY = '04';
 
 const _EXAMPLE = 0; // 0 for problem input, 1 for example
 
