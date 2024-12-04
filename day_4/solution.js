@@ -19,7 +19,6 @@ printDayTitlePlate(_DAY); // Print a plate with the day of the challenge
 // ************ End of Initalization ***********
 
 // ************ Main Logic Stuff ************
-const _DIRNAME = {'1,1': 'SE', '-1,1': 'SW', '1,-1': 'NE', '-1,-1': 'NW', '0,1': 'S', '1,0': 'E', '0,-1': 'N', '-1,0': 'W'}; // Direction names
 let input = readInputFile();
 let data = parseInput(input);
 solvePart1(data);
@@ -34,21 +33,28 @@ printTotalTime();
 function solvePart1(data) {
 	_TIMERS.part_1 = performance.now(); // Start the timer for part 1
 
-	const dirs = [[1,1], [-1,1], [1,-1], [-1,-1], [0,1], [1,0], [0,-1], [-1,0]]; // All directions
-	const needle = 'XMAS';
+	const haystack = [...data]; // Grid to search
+	const needle = 'XMAS'; // Needle to search for
+
+	// Define all possible directions as relative coordinates in increments of 1
+	// This allows us to easily check all directions from a given point by doing
+	// simple addition of the current coordinates and the direction coordinates
+	// Ex: [0,1] + [-1,1] = [-1,2] which is the coordinate to the top right of the current point
+	//     to continue in that direction we would add [-1,1] again to get [-2,3] and so on
+	const directions = [[1,1], [-1,1], [1,-1], [-1,-1], [0,1], [1,0], [0,-1], [-1,0]];
+
 	let answer = 0;
 
-	for (let i = 0; i < data.length; i++) {
-		let row = data[i];
-		for (let j = 0; j < row.length; j++) {
-			if (row[j] !== 'X') { continue; }
-			let needleIdx = 1;
-			let [x, y] = [j, i];
-			for (let [dx, dy] of dirs) {
-				if (crawl(x, y, dx, dy, data, needle, needleIdx)) {
-					// console.log('Found at', x, y, 'in direction', _DIRNAME[stringCoords(dx, dy)]);
-					answer += 1;
-				}
+	// Loop through the grid and check each point for the first character of the needle
+	for (let y = 0; y < haystack.length; y++) {
+		let row = haystack[y];
+		for (let x = 0; x < row.length; x++) {
+			if (row[x] !== needle[0]) { continue; } // Skip if the current character is not the first character of the needle
+			let needleIdx = 1; // Index of the next character to search for
+			for (let [dx, dy] of directions) { // Check all directions one by one
+				// Start recursive search for the rest of the needle in the current direction of dx, dy
+				// Add the result to the answer. If the result is true it will add 1, if false it will add 0
+				answer += crawl_all_axis(x, y, -dx, -dy, haystack, needle, needleIdx);
 			}
 		}
 	}
@@ -63,62 +69,100 @@ function solvePart1(data) {
 function solvePart2(data) {
 	_TIMERS.part_2 = performance.now(); // Start the timer for part 2
 
-	const needle = 'MAS'.split('').sort().reverse();
-	const diags = [[[-1, -1], [1, 1]], [[1, -1], [-1, 1]]];
+	const haystack = [...data]; // Grid to search
+
+	// A Convoluted way to sort the needle in reverse order so we can pop the last character as the base token
+	const needle = ['M', 'S'];
+	const needle_start = 'A'; // Base token to perform the rest of the search around
+
+	// Define the directions to search as relative coordinates in increments of 1
+	// This allows us to easily check all directions from a given point by doing
+	// simple addition of the current coordinates and the direction coordinates
+	// Ex: [0,1] + [-1,1] = [-1,2] which is the coordinate to the top right of the current point
+	// Since our search space is an X shape, we only need to check two directions on the diagonal axis
+	const diagonals = [
+		[[-1, -1], [1, 1]],
+		[[1, -1], [-1, 1]]
+	];
 	let answer = 0;
 
-	for (let i = 0; i < data.length; i++) {
-		let row = data[i];
-		for (let j = 0; j < row.length; j++) {
-			let n_copy = [...needle];
-			let x_diag = {'nw_se': {'found': [n_copy.pop()], needle: [...n_copy]}};
-			x_diag.ne_sw = {'found': [...x_diag.nw_se.found], needle: [...n_copy]};
-			if (row[j] !== x_diag.nw_se.found[0]) { continue; }
+	// Loop through the grid and check each point for the trigger character
+	for (let y = 0; y < haystack.length; y++) {
+		let row = haystack[y];
+		for (let x = 0; x < row.length; x++) {
+			if (row[x] !== needle_start) { continue; } // Skip if the current character is not the trigger character
 
-			// Check NW-SE Diagonal
-			let [x, y] = [j, i];
-			let found = 0;
-			let diags_to_check = [x_diag.nw_se, x_diag.ne_sw];
-			for (let diag of diags) {
-				let curr_diag = diags_to_check.pop();
-				for (let [dx, dy] of diag) {
-					let [nx, ny] = [x + dx, y + dy];
-					if (outOfBounds(nx, ny, data)) { break; }
-					let char = data[ny][nx];
-					if (curr_diag.needle.includes(char)) {
-						curr_diag.found = char;
-						let idx = curr_diag.needle.indexOf(char);
-						curr_diag.needle.splice(idx, 1);
-						if (curr_diag.needle.length === 0) {
-							found += 1;
-						}
-					}
-				}
+			let found = true; // Assume we have found the needle until proven otherwise
+			for (let diagonal of diagonals) { // Check both diagonal directions
+				found = check_diagonals(x, y, haystack, diagonal, [...needle]); // Check if the full needle is found in the diagonal
+				if (!found) { break; } // Break if the needle is not found in the current diagonal. If one diagonal fails, the whole search fails
 			}
-			if (found === 2) { answer += 1; }
+			answer += found; // Add the result to the answer. If the result is true it will add 1, if false it will add 0
 		}
 	}
 	log_answer(answer, 2);
 }
 
-function crawl(x, y, dx, dy, data, needle, needleIdx) {
-	let [nx, ny] = [x + dx, y + dy];
-	if (outOfBounds(nx, ny, data)
-		|| data[ny][nx] !== needle[needleIdx]
-	){ return false; }
-	if (needleIdx === needle.length - 1) {
-		return true;
+/**
+ * Check only the X shape diagonals for full needle matches
+ * @param {Number} x - The x coordinate to start the search from
+ * @param {Number} y - The y coordinate to start the search from
+ * @param {Array} haystack - The grid to search in
+ * @param {Array} diagonal - The relative coordinates to search in
+ * @param {Array} needle - The needle to search for
+ * @returns {Boolean} - True if the needle is found, false otherwise
+ */
+function check_diagonals(x, y, haystack, diagonal, needle) {
+	// Loop through each relative coordinate in the diagonal to check for the remaining characters of the needle
+	for (let [dx, dy] of diagonal) {
+		let [nx, ny] = [x + dx, y + dy]; // Next coords
+		if (outOfBounds(nx, ny, haystack)) { break; } // Break if we are looking outside the grid
+
+		let char = haystack[ny][nx]; // Current character
+		if (!needle.includes(char)) { break; } // Break if the character is not a needle character
+
+		needle.splice(needle.indexOf(char), 1); // Remove the character from the needle
+		if (needle.length === 0) {	return true; } // Return if the whole needle has been found
 	}
-	return crawl(nx, ny, dx, dy, data, needle, needleIdx + 1);
+	// If we have not already returned we have not found the needle so return 0
+	return false;
 }
 
-function stringCoords(x, y) {
-	return `${x},${y}`;
+/**
+ * Recursively crawl in a given direction to check for the full needle
+ * @param {Number} x - The x coordinate to start the search from
+ * @param {Number} y - The y coordinate to start the search from
+ * @param {Number} dx - The x direction to search in
+ * @param {Number} dy - The y direction to search in
+ * @param {Array} haystack - The grid to search in
+ * @param {Array} needle - The needle to search for
+ * @param {Number} needleIdx - The index of the next character to search for
+ * @returns {Boolean} - True if the needle is found, false otherwise
+ */
+function crawl_all_axis(x, y, dx, dy, haystack, needle, needleIdx) {
+	let [nx, ny] = [x + dx, y + dy]; // Next coords
+	// Break if we are looking outside the grid or the character is not in sequence
+	if (outOfBounds(nx, ny, haystack) || haystack[ny][nx] !== needle[needleIdx]){ return false; }
+	if (needleIdx === needle.length - 1) { return true; } // Return if the whole needle has been found
+
+	// Recursively check the next character if we have found a partial match so far
+	// Use the same direction, but increment the x and y values to match the currently checked coordinates
+	// Increment the needle index to check the next character
+	// For more information on the recursion, see https://www.youtube.com/watch?v=rf60MejMz3E
+	return crawl_all_axis(nx, ny, dx, dy, haystack, needle, needleIdx + 1);
 }
 
-
-function outOfBounds(x, y, data) {
-	return x < 0 || y < 0 || y >= data.length || x >= data[y].length;
+/**
+ * Check if the coordinates are outside the grid
+ * @param {Number} x - The x coordinate to check
+ * @param {Number} y - The y coordinate to check
+ * @param {Array} haystack - The grid to check against
+ * @returns {Boolean} - True if the coordinates are outside the grid, false otherwise
+ */
+function outOfBounds(x, y, haystack) {
+	// Check if the coordinates are outside the grid
+	// Read more about the bounds of a 2D array here: https://stackoverflow.com/questions/29808883/how-to-check-if-a-2d-array-is-out-of-bounds
+	return x < 0 || y < 0 || y >= haystack.length || x >= haystack[y].length;
 }
 
 
