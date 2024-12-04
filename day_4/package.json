@@ -25,7 +25,7 @@
   "contributors": [],
   "scripts": {
     "example": "nodemon --exec 'node --experimental-modules solution.js ex.txt'",
-    "solution": "node --experimental-modules solution.js in.txt"
+    "start": "node --experimental-modules solution.js in.txt"
   },
   "dependencies": {
     "chalk": "^5.3.0"

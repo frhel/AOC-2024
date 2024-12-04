@@ -35,8 +35,8 @@ sed -i "s/const _DAY = '0';/const _DAY = '$day';/" solution.js
 sed -i "s/\"main\": \"index.js\",/\"main\": \"solution.js\",/" package.json
 
 # Set up the npm run scripts
-sed -i "s/\"dev\": \"\"/\"example\": \"nodemon --exec 'node --experimental-modules solution.js < ex.txt'\"/" package.json
-sed -i "s/\"test\": \"\"/\"solution\": \"node --experimental-modules solution.js < in.txt\"/" package.json
+sed -i "s/\"dev\": \"\"/\"example\": \"nodemon --exec 'node --experimental-modules solution.js ex.txt'\"/" package.json
+sed -i "s/\"test\": \"\"/\"start\": \"node --experimental-modules solution.js in.txt\"/" package.json
 
 code solution.js
 code in.txt

@@ -9,4 +9,4 @@ Easily create a new project for each day that includes a ready-to-go solution te
 ## Running a solution
 - Navigate to the directory of the day you want to run the solution for.
 - Run ```npm run example``` to run the example input as a nodemon process.
-- Run ```npm run solution``` to run the actual input once as a node process.
+- Run ```npm start``` to run the actual input once as a node process.
