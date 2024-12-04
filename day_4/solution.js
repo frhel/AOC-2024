@@ -15,7 +15,6 @@ _STARS.line_short = _STARS.filled.repeat(20); // Add a line of stars for separat
 _STARS.line_long = _STARS.filled.repeat(56); // Add a longer line of stars for bigger separation
 
 printDayTitlePlate(_DAY); // Print a plate with the day of the challenge
-
 // ************ End of Initalization ***********
 
 // ************ Main Logic Stuff ************
@@ -45,7 +44,8 @@ function solvePart1(data) {
 
 	let answer = 0;
 
-	// Loop through the grid and check each point for the first character of the needle
+	// Loop through the grid and check each point for the first character of the needle.
+	// If the character is found, start a recursive search in all directions to see if there are one or more needles to be found
 	for (let y = 0; y < haystack.length; y++) {
 		let row = haystack[y];
 		for (let x = 0; x < row.length; x++) {
