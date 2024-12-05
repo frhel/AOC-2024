@@ -53,7 +53,6 @@ function solvePart2([rules, chapters]) {
 
 	// Consolidate the rules for quicker lookup
 	let consolidated = consolidateRules(rules);
-	let incorrect = [];
 	let answer = 0;
 
 
