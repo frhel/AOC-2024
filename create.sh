@@ -11,8 +11,23 @@ mkdir -p day_$day
 cd day_$day
 
 # Create input files
-# Normal input
-touch in.txt
+# Normal input. Downloaded from Advent of Code website
+# If the file already exists, don't overwrite it
+if [ -f ../inputs/day_$day.txt ]; then
+	echo "Input file already exists. Skipping download."
+else
+	curl -o ../inputs/day_$day.txt https://adventofcode.com/2024/day/$day/input
+fi
+
+# If we downloaded the placeholder, delete it and create an empty file
+# otherwise, copy the input file to in.txt
+if head -n 1 ../inputs/day_$day.txt | grep -q "Please don't"; then
+	rm ../inputs/day_$day.txt
+	touch in.txt
+else
+	cp ../inputs/day_$day.txt in.txt
+fi
+
 # Example input
 touch ex.txt
 
