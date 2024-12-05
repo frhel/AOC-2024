@@ -16,6 +16,7 @@ printDayTitlePlate(_DAY); // Print a plate with the day of the challenge
 // ************ End of Initalization ***********
 
 // ************ Main Logic Stuff ************
+let _MEMO = {}; // Create a memo object to store values for quick lookup
 let input = readInputFile();
 let data = parseInput(input);
 solvePart1(data);
@@ -38,11 +39,6 @@ function solvePart1([rules, chapters]) {
 			answer += chapter[(chapter.length - 1) / 2];
 		}
 	}
-	// Get the middle page of each chapter and sum them up
-	// For more information on Array.map() and Array.reduce() see:
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-
 
 	// Log answer for part 1
 	log_answer(answer, 1);
@@ -60,34 +56,20 @@ function solvePart2([rules, chapters]) {
 	let incorrect = [];
 	let answer = 0;
 
-	// Grab all the chapters that are not correct
-	for (let chapter of chapters) {
-		if (!isChapterCorrect(rules, chapter)) { incorrect.push(chapter); }
-	}
 
 	// Loop through the incorrect chapters and swap pages to make them correct
 	chapter:
-	for (let chapter of incorrect) {
+	for (let chapter of chapters) {
+		if (_MEMO[chapter.join('')]) continue;
 		for (let p1 = 0; p1 < chapter.length; p1++) {
-			// If the chapter is already correct, continue to the next chapter
-			if (isChapterCorrect(rules, chapter)) {
-				answer += chapter[(chapter.length - 1) / 2];
-				// If the chapter is correct, skip to the next chapter
-				// Because we are in a nested loop, we need to use a label to
-				// define which loop to continue.  The label we have defined in this
-				// case is "chapter".  We set the label immediately before the loop
-				// we want to continue to.  For more information on labels see:
-				// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label
-				continue chapter;
-			}
-			// If the page does not have a rule, skip it
-			if (!consolidated[chapter[p1]]) { continue; }
+			// If p1 does not have a rule, skip it
+			if (!consolidated[chapter[p1]]) continue;
 
 			// Loop through all the pages before the current page
 			// and swap the pages if they are in the wrong order
 			for (let p2 = 0; p2 < p1; p2++) {
 				// If we can't find p2 in the consolidated rules for p1, skip it
-				if (!consolidated[chapter[p1]].includes(chapter[p2])) { continue; }
+				if (!consolidated[chapter[p1]].includes(chapter[p2])) continue;
 
 				// Perform the swap
 				let temp = chapter[p1];
@@ -128,21 +110,29 @@ function consolidateRules(rules) {
  * @param {Array} chapters - The chapter to check
  * @returns {Boolean} - Whether the chapter is correct or not
  */
-function isChapterCorrect(rules, chapter) {
-	let return_arr = [];
-	let left = 0;
-	let right = 0;
-
+function isChapterCorrect(rules, chapter, left = 0, right = 0) {
+	// Create a memo object to store values for quick lookup
+	let memo = {};
 	// Loop through the rules and check if the chapter is compliant
 	for (let rule of rules) {
-		left = chapter.indexOf(rule[0]);
-		right = chapter.indexOf(rule[1]);
-		// If one of the pages is not in the chapter, skip the rule
-		if (left === -1 || right === -1) { continue; }
+		// Check if we have already checked that the pages in the rule exist
+		// Exit early if we have the memoized value as true(doesn't exist)
+		if (memo[rule[0]] === true) continue;
+		else if ((left = chapter.indexOf(rule[0])) === -1) {
+			memo[rule[0]] = true
+			continue;
+		}
+		if (memo[rule[1]] === true) continue;
+		else if ((right = chapter.indexOf(rule[1])) === -1) {
+			memo[rule[1]] = true
+			continue;
+		}
+
 		// If the left page is lower in the chapter than the right page, the rule is broken
 		if (left >= right) { return false; }
 	}
 
+	_MEMO[chapter.join('')] = true;
 	return true // If we haven't returned false yet, the chapter is correct
 }
 
@@ -186,7 +176,7 @@ function readInputFile() {
  */
 function log_answer(answer, part) {
 	console.info(chalk.blue(_STARS.line_short), ' '.repeat(3), chalk.bold.white('Part ' + part), ' '.repeat(3), chalk.blue(_STARS.line_short));
-	console.info(_STARS.filled.repeat(2), chalk.cyan('Answer: '), '[-', chalk.yellow.bold(answer), '-] in', chalk.green('[-'), chalk.green.bold((performance.now() - _TIMERS[`part_${part}`]).toFixed(4)), chalk.red('ms'), chalk.green('-]\n'));
+	console.info(_STARS.filled.repeat(2), chalk.cyan('Answer: '), '[-', chalk.yellow.bold(answer), '-] in', chalk.green('[-'), chalk.green.bold((performance.now() - _TIMERS[`part_${part}`]).toFixed(4)), chalk.red('ms'), chalk.green('-]'));
 }
 
 /**
@@ -194,7 +184,7 @@ function log_answer(answer, part) {
  * @param {String} day - The day of the challenge
  */
 function printDayTitlePlate(day) {
-	console.info(chalk.blue(`\n${_STARS.line_short} ${chalk.bold.white('DAY .-[',_DAY,']-.')} ${_STARS.line_short}\n`));
+	console.info(chalk.blue(`\n${_STARS.line_short} ${chalk.bold.white('DAY .-[',_DAY,']-.')} ${_STARS.line_short}`));
 }
 
 /**
@@ -202,6 +192,6 @@ function printDayTitlePlate(day) {
  */
 function printTotalTime() {
 	console.info(chalk.blue(_STARS.line_short), ' '.repeat(1), chalk.bold.white('Total Time'), ' '.repeat(1), chalk.blue(_STARS.line_short));
-	console.info(chalk.blue(_STARS.filled.repeat(23)), chalk.green.bold((performance.now() - _TIMERS['global']).toFixed(4))+chalk.bold.white('ms'), chalk.blue(_STARS.filled.repeat(23)), '\n');
+	console.info(chalk.blue(_STARS.filled.repeat(23)), chalk.green.bold((performance.now() - _TIMERS['global']).toFixed(4))+chalk.bold.white('ms'), chalk.blue(_STARS.filled.repeat(23)));
 }
 // ************ End of Helper Functions ************
