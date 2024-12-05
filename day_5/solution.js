@@ -24,51 +24,6 @@ printTotalTime();
 
 // ************ Solution Functions ************
 /**
- * Consolidate the rules into a single object for quicker lookup
- * @param {Array} rules - The rules to consolidate
- * @returns {Object} - The consolidated rules
- */
-function consolidateRules(rules) {
-	// Create an object to hold the consolidated rules
-	// Object uses the left side of the rule as the key
-	// and an array of right side rules as the value
-	let consolidated = {};
-	for (let rule of rules) {
-		// If the rule doesn't exist in the object, create it
-		if (!consolidated[rule[0]]) {
-			consolidated[rule[0]] = [];
-		}
-		// Push the right side of the rule onto the object
-		consolidated[rule[0]].push(rule[1]);
-	}
-	return consolidated;
-}
-
-/**
- * Returns the chapters that are correct based on the rules
- * @param {Array} rules - The rules to check against
- * @param {Array} chapters - The chapter to check
- * @returns {Boolean} - Whether the chapter is correct or not
- */
-function getCorrectChapter(rules, chapter) {
-	let return_arr = [];
-	let left = 0;
-	let right = 0;
-
-	// Loop through the rules and check if the chapter is compliant
-	for (let rule of rules) {
-		left = chapter.indexOf(rule[0]);
-		right = chapter.indexOf(rule[1]);
-		// If one of the pages is not in the chapter, skip the rule
-		if (left === -1 || right === -1) { continue; }
-		// If the left page is lower in the chapter than the right page, the rule is broken
-		if (left >= right) { return false; }
-	}
-
-	return true // If we haven't returned false yet, the chapter is correct
-}
-
-/**
  * Solves part 1 of the challenge and logs the answer to the console
  * @param {Array} data - The parsed input data
  */
@@ -79,7 +34,7 @@ function solvePart1([rules, chapters]) {
 	// Loop through the chapters and check if they are correct
 	for (let chapter of chapters) {
 		// Push all the correct chapters to the answer array
-		if (getCorrectChapter(rules, chapter)) {
+		if (isChapterCorrect(rules, chapter)) {
 			answer += chapter[(chapter.length - 1) / 2];
 		}
 	}
@@ -107,7 +62,7 @@ function solvePart2([rules, chapters]) {
 
 	// Grab all the chapters that are not correct
 	for (let chapter of chapters) {
-		if (!getCorrectChapter(rules, chapter)) { incorrect.push(chapter); }
+		if (!isChapterCorrect(rules, chapter)) { incorrect.push(chapter); }
 	}
 
 	// Loop through the incorrect chapters and swap pages to make them correct
@@ -115,7 +70,7 @@ function solvePart2([rules, chapters]) {
 	for (let chapter of incorrect) {
 		for (let p1 = 0; p1 < chapter.length; p1++) {
 			// If the chapter is already correct, continue to the next chapter
-			if (getCorrectChapter(rules, chapter)) {
+			if (isChapterCorrect(rules, chapter)) {
 				answer += chapter[(chapter.length - 1) / 2];
 				// If the chapter is correct, skip to the next chapter
 				// Because we are in a nested loop, we need to use a label to
@@ -144,6 +99,51 @@ function solvePart2([rules, chapters]) {
 	}
 
 	log_answer(answer, 2);
+}
+
+/**
+ * Consolidate the rules into a single object for quicker lookup
+ * @param {Array} rules - The rules to consolidate
+ * @returns {Object} - The consolidated rules
+ */
+function consolidateRules(rules) {
+	// Create an object to hold the consolidated rules
+	// Object uses the left side of the rule as the key
+	// and an array of right side rules as the value
+	let consolidated = {};
+	for (let rule of rules) {
+		// If the rule doesn't exist in the object, create it
+		if (!consolidated[rule[0]]) {
+			consolidated[rule[0]] = [];
+		}
+		// Push the right side of the rule onto the object
+		consolidated[rule[0]].push(rule[1]);
+	}
+	return consolidated;
+}
+
+/**
+ * Returns the chapters that are correct based on the rules
+ * @param {Array} rules - The rules to check against
+ * @param {Array} chapters - The chapter to check
+ * @returns {Boolean} - Whether the chapter is correct or not
+ */
+function isChapterCorrect(rules, chapter) {
+	let return_arr = [];
+	let left = 0;
+	let right = 0;
+
+	// Loop through the rules and check if the chapter is compliant
+	for (let rule of rules) {
+		left = chapter.indexOf(rule[0]);
+		right = chapter.indexOf(rule[1]);
+		// If one of the pages is not in the chapter, skip the rule
+		if (left === -1 || right === -1) { continue; }
+		// If the left page is lower in the chapter than the right page, the rule is broken
+		if (left >= right) { return false; }
+	}
+
+	return true // If we haven't returned false yet, the chapter is correct
 }
 
 
