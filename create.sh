@@ -6,7 +6,18 @@ set -e
 # Read day number from command line
 day=$1
 
-# Create directory
+# Get the variables from the .env file
+if [ -f .env ]; then
+	set -a
+	source .env
+	set +a
+else
+	echo "No .env file found. What is your Advent of Code session key?"
+	read AOC_SESSION_KEY
+	echo "AOC_SESSION_KEY=$AOC_SESSION_KEY" > .env
+fi
+
+# Create directory for the day
 mkdir -p day_$day
 cd day_$day
 
@@ -16,12 +27,12 @@ cd day_$day
 if [ -f ../inputs/day_$day.txt ]; then
 	echo "Input file already exists. Skipping download."
 else
-	curl -o ../inputs/day_$day.txt https://adventofcode.com/2024/day/$day/input
+	curl -s "https://adventofcode.com/2024/day/$day/input" -H "cookie: session=$AOC_SESSION_KEY" > ../inputs/day_$day.txt
 fi
 
 # If we downloaded the placeholder, delete it and create an empty file
 # otherwise, copy the input file to in.txt
-if head -n 1 ../inputs/day_$day.txt | grep -q "Please don't"; then
+if head -n 1 ../inputs/day_$day.txt | (grep -q "Please don't" || grep -q "Puzzle inputs"); then
 	rm ../inputs/day_$day.txt
 	touch in.txt
 else
