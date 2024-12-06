@@ -69,9 +69,6 @@ function solvePart2(x, y) {
  * @param {Number} x - The x coordinate
  * @param {Number} y - The y coordinate
  * @param {Number} part - The part of the challenge
- * @param {Number} nx - The next x coordinate
- * @param {Number} ny - The next y coordinate
- * @returns {Number} - The answer to the challenge
  */
 function runSimulation(x, y, part = 1) {
 	let dir = _START_DIR; // Always start facing up
@@ -118,6 +115,12 @@ function runSimulation(x, y, part = 1) {
 	return _VISITED.size;
 }
 
+/**
+ * Check if the coordinates are inside the bounds of the grid
+ * @param {Number} x - The x coordinate
+ * @param {Number} y - The y coordinate
+ * @returns {Boolean} - True if the coordinates are inside the bounds, false otherwise
+ */
 function isInsideBounds(x, y) {
 	return x >= 0 && x < _GRID_BOUNDS[0] && y >= 0 && y < _GRID_BOUNDS[1];
 }
