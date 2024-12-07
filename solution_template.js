@@ -81,8 +81,7 @@ function readInputFile() {
  * @param {Number} part - The part of the _DAY
  */
 function log_answer(answer, part) {
-	console.info(chalk.blue(_STARS.line_short), ' '.repeat(3), chalk.bold.white('Part ' + part), ' '.repeat(3), chalk.blue(_STARS.line_short));
-	console.info(_STARS.filled.repeat(2), chalk.cyan('Answer: '), '[-', chalk.yellow.bold(answer), '-] in', chalk.green('[-'), chalk.green.bold((performance.now() - _TIMERS[`part_${part}`]).toFixed(4)), chalk.red('ms'), chalk.green('-]\n'));
+	console.info(chalk.bold.white('Part ' + part), ' '.repeat(3), '[-', chalk.yellow.bold(answer), '-] in', chalk.green('[-'), chalk.green.bold((performance.now() - _TIMERS[`part_${part}`]).toFixed(4)), chalk.red('ms'), chalk.green('-]\n'));
 }
 
 /**
@@ -97,7 +96,6 @@ function printDayTitlePlate(day) {
  * Print the total time to the console
  */
 function printTotalTime() {
-	console.info(chalk.blue(_STARS.line_short), ' '.repeat(1), chalk.bold.white('Total Time'), ' '.repeat(1), chalk.blue(_STARS.line_short));
-	console.info(chalk.blue(_STARS.filled.repeat(23)), chalk.green.bold((performance.now() - _TIMERS['global']).toFixed(4))+chalk.bold.white('ms'), chalk.blue(_STARS.filled.repeat(23)), '\n');
+	console.info(chalk.bold.white('Total Time: '), ' '.repeat(1), chalk.green.bold((performance.now() - _TIMERS['global']).toFixed(4))+chalk.bold.white('ms'));
 }
 // ************ End of Helper Functions ************
