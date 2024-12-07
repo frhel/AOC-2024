@@ -20,7 +20,7 @@ function executeChunk(data) {
 	// For every equation in the data
 	for (let eq of data) {
 		// Recurse through the data and find if the test is possible or not
-		let res = startRecursionFromOperators(eq[0], eq[1][0], eq[1][1], eq[1].slice(2), _PART);
+		let res = startNewRecursionBranches(eq[0], eq[1][0], eq[1][1], eq[1].slice(2), _PART);
 		answer += res;
 		// Any tests that return 0 are added to the rejects array but only for part 1
 		// Part 2 will use the rejects array to solve the second part of the puzzle
@@ -79,7 +79,7 @@ function handleRecursion(test, left, right, line, new_line, part, operator) {
 	// recurse through the rest of them with the new outcome as the left side
 	if (line.length > 0) {
 		// Send the new outcome to the recursion initializer
-		let res = startRecursionFromOperators(test, outcome, line[0], new_line, part);
+		let res = startNewRecursionBranches(test, outcome, line[0], new_line, part);
 		// If the result is the test, return it as we have found a solution
 		if (res === test) return res;
 	}
