@@ -15,15 +15,15 @@ printDayTitlePlate(_DAY); // Print a plate with the day of the challenge
 // ************ End of Initalization ***********
 
 // ************ Main Logic Stuff ************
-let _REJECTS = [];
-let _OPERATORS = ['+', '*'];
-let _PART_1_ANSWER = 0;
-let _PART_2_ANSWER = 0;
-let _THREAD_COUNT = 5;
+let _REJECTS = []; // Array to hold all the rejects from part 1
+let _OPERATORS = ['+', '*']; // The operators to use in the calculations
+let _PART_1_ANSWER = 0; // The answer to part 1
+let _PART_2_ANSWER = 0; // The answer to part 2
+let _THREAD_COUNT = 5; // The number of threads to use
 let input = readInputFile();
 let data = parseInput(input);
-await solvePart1(data);
-await solvePart2(data);
+await solvePart1(data); // Solve part 1 - Wait for the promise to resolve
+await solvePart2(data); // Solve part 2 - Wait for the promise to resolve
 printTotalTime();
 
 
@@ -35,8 +35,10 @@ printTotalTime();
 async function solvePart1(data) {
 	_TIMERS.part_1 = performance.now(); // Start the timer for part 1
 
+	// Launch the workers to solve the problem
 	let workers = launchWorkers(data, 1);
 
+	// Wait for all the workers to resolve
 	await Promise.all(workers);
 
 	log_answer(_PART_1_ANSWER, 1);
@@ -48,11 +50,16 @@ async function solvePart1(data) {
  */
 async function solvePart2(data) {
 	_TIMERS.part_2 = performance.now(); // Start the timer for part 2
-	_OPERATORS = ['+', '||', '*'];
+
+	// Set the operators for part 2
+	_OPERATORS = ['+', '*', '||'];
+	// Flatten the rejects array. This is necessary because the rejects are stored in an array of arrays
+	// The workers return an array of rejects for each chunk of data they process
 	_REJECTS = _REJECTS.flat();
 
-	let answer = 0;
+	// Launch the workers to solve the problem
 	let workers = launchWorkers(_REJECTS, 2);
+
 
 	await Promise.all(workers);
 	// Add the answer from part 1 to the answer from part 2
@@ -65,30 +72,41 @@ function updateAnswer(result, part) {
 }
 
 function launchWorkers(data, part) {
+	// Define the workers array so we can push the workers to it
 	let workers = [];
 	let thread_count = _THREAD_COUNT;
-	let part_size = Math.ceil(data.length / thread_count);
-	for (let i = 0; i < thread_count * part_size; i += part_size) {
+
+	// Determine how many items each worker will process
+	let chunk_size = Math.ceil(data.length / thread_count);
+
+	// Launch the workers. Each worker processes chunk_size items from the data array
+	for (let i = 0; i < thread_count * chunk_size; i += chunk_size) {
 		workers.push(
+			// Create a new promise for each worker so we can make sure all workers resolve before moving on
 			new Promise((resolve, reject) => {
-				let worker_data = data.slice(i, i + part_size);
+				// Slice the data array to get the chunk of data for this worker
+				let worker_data = data.slice(i, i + chunk_size);
+				// Create a new worker and pass the data and operators to it
 				let worker = new Worker('./solve_chunk.js', { workerData: { data: worker_data, operators: _OPERATORS, part: part } });
-				workers.push(worker);
+				// Listen for messages from the worker
 				worker.on('message', (msg) => {
-					let result = msg.answer;
-					let rejects = msg.rejects;
-					updateAnswer(result, part);
-					if (part === 1) _REJECTS.push([...rejects]);
-					resolve();
+					updateAnswer(msg.answer, part);
+					// If part 1, add the rejects to the global rejects array
+					// We have to add the rejects as an array of arrays because otherwise
+					// we will have race conditions when multiple workers try to access the same array
+					if (part === 1) _REJECTS.push([...msg.rejects]);
+					resolve(); // Resolve the promise
 				});
-				worker.on('error', reject);
+				worker.on('error', reject); // Reject the promise if there is an error
 				worker.on('exit', (code) => {
+					// If the worker exits with a non-zero code, reject the promise and log the error
 					if (code !== 0)
 						reject(new Error(`Worker stopped with exit code ${code}`));
 				});
 			}));
 	}
 
+	// Return the workers array so we can wait for all the workers to resolve
 	return workers;
 }
 
