@@ -18,93 +18,78 @@ printDayTitlePlate(_DAY); // Print a plate with the day of the challenge
 let _REJECTS = [];
 let _OPERATORS = ['+', '*'];
 let _PART_1_ANSWER = 0;
+let _PART_2_ANSWER = 0;
+let _THREAD_COUNT = 5;
 let input = readInputFile();
 let data = parseInput(input);
-solvePart1(data);
-solvePart2(data);
+await solvePart1(data);
+await solvePart2(data);
 printTotalTime();
+
 
 // ************ Solution Functions ************
 /**
  * Solves part 1 of the challenge and logs the answer to the console
  * @param {Array} data - The parsed input data
  */
-function solvePart1(data) {
+async function solvePart1(data) {
 	_TIMERS.part_1 = performance.now(); // Start the timer for part 1
 
-	let answer = 0;
+	let workers = launchWorkers(data, 1);
 
-	// Iterate over the data and solve the problem
-	for (let eq of data) {
-		// Recurse through the data and find if the test is possible or not
-		let res = recurseSolution(eq[0], eq[1][0], eq[1][1], eq[1].slice(2), 1);
-		answer += res;
-		// Any tests that return 0 are added to the _REJECTS array for part 2
-		if (res === 0) _REJECTS.push(eq);
-	}
+	await Promise.all(workers);
 
-	// Save the answer to the global variable for part 2
-	_PART_1_ANSWER = answer;
-
-	log_answer(answer, 1);
-
+	log_answer(_PART_1_ANSWER, 1);
 }
 
 /**
  * Solves part 2 of the challenge and logs the answer to the console
  * @param {Array} data - The parsed input data
  */
-function solvePart2(data) {
+async function solvePart2(data) {
 	_TIMERS.part_2 = performance.now(); // Start the timer for part 2
-
-	_OPERATORS.push('||');
+	_OPERATORS = ['+', '||', '*'];
+	_REJECTS = _REJECTS.flat();
 
 	let answer = 0;
+	let workers = launchWorkers(_REJECTS, 2);
 
-	// Iterate over the rejects and solve the problem
-	for (let reject of _REJECTS) {
-		let res = recurseSolution(reject[0], reject[1].shift(), reject[1].shift(), reject[1], 2);
-		answer += res; // Add the result to the answer. 0 if not found
-	}
+	await Promise.all(workers);
 	// Add the answer from part 1 to the answer from part 2
-	log_answer(answer + _PART_1_ANSWER, 2);
+	log_answer(_PART_2_ANSWER + _PART_1_ANSWER, 2);
 }
 
+function updateAnswer(result, part) {
+	if (part === 1) _PART_1_ANSWER += result;
+	else _PART_2_ANSWER += result;
+}
 
-function recurseSolution(test, left, right, line, part) {
-
-	let new_line = line.slice(1);
-	// Create a new branch for each operation
-	for (let operator of _OPERATORS) {
-		let res = handleRecursion(test, left, right, line, new_line, part, operator);
-		if (res === -1) continue;
-		else if (res === test) return res;
+function launchWorkers(data, part) {
+	let workers = [];
+	let thread_count = _THREAD_COUNT;
+	let part_size = Math.ceil(data.length / thread_count);
+	for (let i = 0; i < thread_count * part_size; i += part_size) {
+		workers.push(
+			new Promise((resolve, reject) => {
+				let worker_data = data.slice(i, i + part_size);
+				let worker = new Worker('./solve_chunk.js', { workerData: { data: worker_data, operators: _OPERATORS, part: part } });
+				workers.push(worker);
+				worker.on('message', (msg) => {
+					let result = msg.answer;
+					let rejects = msg.rejects;
+					updateAnswer(result, part);
+					if (part === 1) _REJECTS.push([...rejects]);
+					resolve();
+				});
+				worker.on('error', reject);
+				worker.on('exit', (code) => {
+					if (code !== 0)
+						reject(new Error(`Worker stopped with exit code ${code}`));
+				});
+			}));
 	}
 
-	return 0;
-}
-
-function handleRecursion(test, left, right, line, new_line, part, operator) {
-	let outcome = performOperation(operator, left, right);
-	// If the outcome is greater than the test, skip this branch as it will not be possible
-	// to reduce the accumulated number to match the test
-	if (outcome > test) return -1;
-	if (outcome === test) return outcome;
-
-	// If there are more numbers in the line, recurse through the rest of the line with the outcome added to the front
-	if (line.length > 0) {
-		let res = recurseSolution(test, outcome, line[0], new_line, part);
-		if (res === test) return res;
-	}
-	return 0;
-}
-
-function performOperation(operator, left, right) {
-	let outcome = 0;
-	if (operator === '+') outcome = left + right;
-	else if (operator === '*') outcome = left * right;
-	else if (operator === '||') outcome = Number(`${left}${right}`);
-	return outcome;
+	return workers;
 }
 
 
@@ -166,7 +151,9 @@ function printDayTitlePlate(day) {
 	console.log('\n');
 	let title = `-= DAY ${day} =-`;
 	let line_length = (_OUTPUT_LENGTH - (title.length) - 2) / 4;
+	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 	console.info(chalk.bold.blue('-'.repeat(Math.ceil(line_length)), `${chalk.bold.white(title)}`, '-'.repeat(line_length * 3)));
+	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 }
 
 /**

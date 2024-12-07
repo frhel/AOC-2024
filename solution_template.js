@@ -92,7 +92,7 @@ function log_answer(answer, part) {
 	let time_unit = pickTimeUnit(time);
 	let static_length = 31;
 	let line_length = static_length + answer.toString().length + time_unit[0].toFixed(4).length;
-	let output = chalk(chalk.bold.white('Part ' + part), '[-', chalk.yellow.bold(answer), '-] in', chalk.green('[-'), chalk.green.bold((time_unit[0]).toFixed(4)), chalk.red(time_unit[1]), chalk.green('-]'));
+	let output = chalk(chalk.bold.white('Part ' + part + ' [-'), chalk.yellow.bold(answer), chalk.white.bold('-] in'), chalk.green.bold('[- ' + (time_unit[0]).toFixed(4)), chalk.red(time_unit[1]), chalk.green.bold('-]'));
 	console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
 	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 }
@@ -105,7 +105,9 @@ function printDayTitlePlate(day) {
 	console.log('\n');
 	let title = `-= DAY ${day} =-`;
 	let line_length = (_OUTPUT_LENGTH - (title.length) - 2) / 4;
+	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 	console.info(chalk.bold.blue('-'.repeat(Math.ceil(line_length)), `${chalk.bold.white(title)}`, '-'.repeat(line_length * 3)));
+	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 }
 
 /**
@@ -117,7 +119,7 @@ function printTotalTime() {
 	let time_unit = pickTimeUnit(time);
 	let static_length = 26;
 	let line_length = static_length + time.toFixed(4).length;
-	let output = chalk(chalk.bold.white('Total Time:'), '[-', chalk.green.bold(time_unit[0].toFixed(4), chalk.red(time_unit[1]), chalk.white('-]')));
+	let output = chalk(chalk.bold.white('Total Time: [-'), chalk.green.bold(time_unit[0].toFixed(4), chalk.red(time_unit[1]), chalk.white('-]')));
 	console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
 	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 	console.log('\n');
