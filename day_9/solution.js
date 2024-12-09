@@ -33,7 +33,7 @@ function solvePart1(data) {
 	let answer = 0;
 	let files = data.slice();
 
-	let eof = 0;
+	let eof = files.length - 1; // End of file pointer
 
 	// For every empty space we encounter, we move one part of a file from the back
 	// to its position.
@@ -46,26 +46,20 @@ function solvePart1(data) {
 		// We use the eof variable to keep track of where the right pointer should start
 		// checking for files.
 		right:
-		for (let j = files.length - 1 - eof; j > i; j--) {
+		for (let j = eof; j > i; j--) {
+			// Update the eof pointer to the current position of the right pointer
+			eof = j;
+
 			// If left and right pointers cross, we break out of the loop
 			// as we can't move any more files
 			if (files[j] <= files[i]) continue left;
 
-			// If we encounter an empty space, we skip it
-			// and increment the eof counter so we don't
-			// have to go through all the empty spaces
-			// we've created at the end of the array again
-			if (files[j] === '.') {
-				eof++;
-				continue right;
-			}
 
-			// Set the rightmost file fragment to the leftmost empty space
-			// Reset the rightmost file fragment to an empty space
-			// Increment the eof counter
-			files[i] = files[j]
-			files[j] = '.';
-			eof++;
+			// If we find a file fragment, we swap it with the empty space
+			if (files[j] !== '.') {
+				files[i] = files[j]
+				files[j] = '.';
+			}
 		}
 	}
 
