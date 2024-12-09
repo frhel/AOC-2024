@@ -16,8 +16,10 @@ printDayTitlePlate(_DAY); // Print a plate with the day of the challenge
 // ************ Main Logic Stuff ************
 let input = readInputFile();
 let data = parseInput(input);
-solvePart1(data);
-solvePart2(data);
+let files = expandData(data);
+let [empty, full] = shapeData(files);
+solvePart1(files);
+solvePart2(files, empty, full);
 printTotalTime();
 
 // ************ Solution Functions ************
@@ -80,64 +82,12 @@ function solvePart1(data) {
  * Solves part 2 of the challenge and logs the answer to the console
  * @param {Array} data - The parsed input data
  */
-function solvePart2(data) {
+function solvePart2(data, empty_mem_blocks, full_mem_blocks) {
 	_TIMERS.part_2 = performance.now(); // Start the timer for part 2
 
 	// Code to solve part 2 goes here
 	let answer = 0;
 	let memory = data.slice();
-
-	// We split the memory into two arrays, one for empty memory blocks and one for full file blocks
-	let empty_mem_blocks = [];
-	let full_mem_blocks = [];
-	let ei = -1; // Empty index
-	let fi = -1; // Full index
-
-	// We iterate through the memory array and create a new array for each
-	// contiguous empty space we encounter. Each array contains pointers
-	// to the empty spaces in memory
-	// NOTE: We start from the back of the array to make it easier to pop and push
-	// memory blocks to and from the empty memory blocks array
-	for (let i = memory.length - 1; i >= 0; i--) {
-		if (memory[i] === '.') {
-			// If we encounter an empty space, we create a new block in the empty memory blocks array
-			empty_mem_blocks.push([]);
-			ei++;
-			// While the empty space is contiguous, we add the current index as a pointer to the empty memory block
-			while (memory[i] === '.') {
-				empty_mem_blocks[ei].push(i);
-				i--;
-			}
-		}
-	}
-
-	let file_id = -1; // Keep track of the current file id
-
-	// We iterate through the memory array again and this time we create
-	// a block in the full memory blocks array for each whole file we encounter.
-	// Each block is an array that contains the file id and an array of file fragment pointers.
-	// NOTE: We start from the front of the array so we can just pop the last file off the array,
-	// process it and discard it when we're done (as the rules state that we are only allowed to
-	// process each file once)
-	for (let i = 0; i < memory.length - 1; i++) {
-		if (memory[i] === '.') continue; // Skip empty spaces
-		if (memory[i] !== file_id) {
-			// If we encounter a new file, we create a new block in the full memory blocks array
-			// set the file id and create an array for the fragment pointers
-			file_id = memory[i];
-			full_mem_blocks.push([file_id, []]);
-			fi++; // Increment the current full memory block pointer
-
-			// While the file is contiguous, we add the pointer to the fragment array of the current block
-			while (memory[i] === file_id) {
-				full_mem_blocks[fi][1].push(i);
-				i++;
-			}
-		}
-		// We decrement i here because we don't want the for loop to increment it again
-		// on the next iteration as we already incremented it in the while loop above
-		i--;
-	}
 
 	// Start moving whole files from the back to empty memory blocks in the front wherever they fit
 	compact:
@@ -193,14 +143,64 @@ function solvePart2(data) {
 	log_answer(answer, 2);
 }
 
+function shapeData(data) {
+	let memory = data.slice();
 
-/**
- * Parse the input into a usable format
- * Remember to set the @param and @returns values
- */
-function parseInput(input) {
+	// We split the memory into two arrays, one for empty memory blocks and one for full file blocks
+	let empty_mem_blocks = [];
+	let full_mem_blocks = [];
+	let ei = -1; // Empty index
+	let fi = -1; // Full index
 
-	let data = input.split('').map(digits => Number(digits));
+	// We iterate through the memory array and create a new array for each
+	// contiguous empty space we encounter. Each array contains pointers
+	// to the empty spaces in memory
+	// NOTE: We start from the back of the array to make it easier to pop and push
+	// memory blocks to and from the empty memory blocks array
+	for (let i = memory.length - 1; i >= 0; i--) {
+		if (memory[i] === '.') {
+			// If we encounter an empty space, we create a new block in the empty memory blocks array
+			empty_mem_blocks.push([]);
+			ei++;
+			// While the empty space is contiguous, we add the current index as a pointer to the empty memory block
+			while (memory[i] === '.') {
+				empty_mem_blocks[ei].push(i);
+				i--;
+			}
+		}
+	}
+
+	let file_id = -1; // Keep track of the current file id
+
+	// We iterate through the memory array again and this time we create
+	// a block in the full memory blocks array for each whole file we encounter.
+	// Each block is an array that contains the file id and an array of file fragment pointers.
+	// NOTE: We start from the front of the array so we can just pop the last file off the array,
+	// process it and discard it when we're done (as the rules state that we are only allowed to
+	// process each file once)
+	for (let i = 0; i < memory.length - 1; i++) {
+		if (memory[i] === '.') continue; // Skip empty spaces
+		if (memory[i] !== file_id) {
+			// If we encounter a new file, we create a new block in the full memory blocks array
+			// set the file id and create an array for the fragment pointers
+			file_id = memory[i];
+			full_mem_blocks.push([file_id, []]);
+			fi++; // Increment the current full memory block pointer
+
+			// While the file is contiguous, we add the pointer to the fragment array of the current block
+			while (memory[i] === file_id) {
+				full_mem_blocks[fi][1].push(i);
+				i++;
+			}
+		}
+		// We decrement i here because we don't want the for loop to increment it again
+		// on the next iteration as we already incremented it in the while loop above
+		i--;
+	}
+	return [empty_mem_blocks, full_mem_blocks];
+}
+
+function expandData(data) {
 
 	let files = [];
 	let file_id = 0;
@@ -217,6 +217,17 @@ function parseInput(input) {
 		}
 	}
 	return files;
+}
+
+
+/**
+ * Parse the input into a usable format
+ * Remember to set the @param and @returns values
+ */
+function parseInput(input) {
+
+	let data = input.split('').map(digits => Number(digits));
+	return data;
 
 }
 // ************ End of Solution Functions ************
