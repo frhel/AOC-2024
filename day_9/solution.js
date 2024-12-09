@@ -133,7 +133,6 @@ function solvePart2(data) {
 		answer += files[i] * i;
 	}
 
-	console.log('Wrong:', 6642048248750)
 	log_answer(answer, 2);
 }
 
