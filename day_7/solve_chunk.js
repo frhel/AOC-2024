@@ -97,6 +97,15 @@ function performOperation(operator, left, right) {
 	let outcome = 0;
 	if (operator === '+') outcome = left + right;
 	else if (operator === '*') outcome = left * right;
-	else if (operator === '||') outcome = Number(`${left}${right}`);
+	else if (operator === '||') outcome = concatNums(left, right);
 	return outcome;
+}
+
+function concatNums(left, right) {
+	let r = right;
+	while (r > 1) {
+		left = left * 10;
+		r = r / 10;
+	}
+	return left + right;
 }
