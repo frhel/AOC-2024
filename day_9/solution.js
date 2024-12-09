@@ -85,46 +85,52 @@ function solvePart2(data) {
 
 	// Code to solve part 2 goes here
 	let answer = 0;
-	let files = data.slice();
+	let memory = data.slice();
 
-	// We split the files into two arrays, one for the empty spaces and one for the files
-	let empty = [];
-	let full = [];
+	// We split the memory into two arrays, one for empty memory blocks and one for full file blocks
+	let empty_mem_blocks = [];
+	let full_mem_blocks = [];
 	let ei = -1; // Empty index
 	let fi = -1; // Full index
 
-	// We iterate through the files array and create a new array for each
-	// contiguous empty space we encounter. Each array contains the indexes
-	// of each empty space within that contiguous empty space.
-	for (let i = files.length - 1; i >= 0; i--) {
-		if (files[i] === '.') {
-			// If we encounter an empty space, we create a new array
-			empty.push([]);
+	// We iterate through the memory array and create a new array for each
+	// contiguous empty space we encounter. Each array contains pointers
+	// to the empty spaces in memory
+	// NOTE: We start from the back of the array to make it easier to pop and push
+	// memory blocks to and from the empty memory blocks array
+	for (let i = memory.length - 1; i >= 0; i--) {
+		if (memory[i] === '.') {
+			// If we encounter an empty space, we create a new block in the empty memory blocks array
+			empty_mem_blocks.push([]);
 			ei++;
-			// While the empty space is contiguous, we add the index to the array
-			while (files[i] === '.') {
-				empty[ei].push(i);
+			// While the empty space is contiguous, we add the current index as a pointer to the empty memory block
+			while (memory[i] === '.') {
+				empty_mem_blocks[ei].push(i);
 				i--;
 			}
 		}
 	}
 
 	let file_id = -1; // Keep track of the current file id
-	// We iterate through the files array again and this time we create
-	// a new array for each whole file we encounter. Each array contains
-	// the file id and an array of indexes. The indexes array contains
-	// the indexes of each contiguous file fragment within that file.
-	for (let i = 0; i < files.length - 1; i++) {
-		if (files[i] === '.') continue; // Skip empty spaces
-		if (files[i] !== file_id) {
-			// If we encounter a new file, we create a new array,
-			// set the file id and create an array for the indexes
-			file_id = files[i];
-			full.push([file_id, []]);
-			fi++; // Increment the full array index so we can add the indexes to the correct array
-			// While the file is contiguous, we add the index to the array
-			while (files[i] === file_id) {
-				full[fi][1].push(i);
+
+	// We iterate through the memory array again and this time we create
+	// a block in the full memory blocks array for each whole file we encounter.
+	// Each block is an array that contains the file id and an array of file fragment pointers.
+	// NOTE: We start from the front of the array so we can just pop the last file off the array,
+	// process it and discard it when we're done (as the rules state that we are only allowed to
+	// process each file once)
+	for (let i = 0; i < memory.length - 1; i++) {
+		if (memory[i] === '.') continue; // Skip empty spaces
+		if (memory[i] !== file_id) {
+			// If we encounter a new file, we create a new block in the full memory blocks array
+			// set the file id and create an array for the fragment pointers
+			file_id = memory[i];
+			full_mem_blocks.push([file_id, []]);
+			fi++; // Increment the current full memory block pointer
+
+			// While the file is contiguous, we add the pointer to the fragment array of the current block
+			while (memory[i] === file_id) {
+				full_mem_blocks[fi][1].push(i);
 				i++;
 			}
 		}
@@ -133,54 +139,55 @@ function solvePart2(data) {
 		i--;
 	}
 
-	// Start moving whole files from the back to contiguous empty spaces
-	// in the front wherever they fit
+	// Start moving whole files from the back to empty memory blocks in the front wherever they fit
 	compact:
-	while(full.length > 0) {
-		// While there are files left to move, we pop the last file off the array
-		let f = full.pop();
+	while(full_mem_blocks.length > 0) {
+		// While there are memory left to move, we pop the last file off the array
+		let f = full_mem_blocks.pop();
 
-		// If the file position is less than the last empty space, we break out of the loop
-		if (f[1][0] < empty.at(-1)[0]) break compact;
+		// If the file position in memory is less than the last empty space, we break out of the loop
+		if (f[1][0] < empty_mem_blocks.at(-1)[0]) break compact;
 
 		let stack = []; // Stack to keep track of the empty spaces we've checked
 
-		// We iterate through the empty spaces up to the file's position
-		// and slot the file in wherever it fits
+		// Check every empty memory block for a fit for the current file. If we find a fit, we slot the file in
+		// and continue with the next file. We keep checking until we find a fit or reach the current file position
+		// in memory
 		e:
-		while (empty.length > 0) {
-			// We pop the last empty space off the array (the one closest to the beginning of the memory)
-			// and push it onto the stack. We also grab that element for easier access
-			stack.push(empty.pop());
+		while (empty_mem_blocks.length > 0) {
+			// We pop an empty memory block off the array of empty memory blocks
+			// and push it onto the stack. We also save the popped block in a variable
+			// for easier access
+			stack.push(empty_mem_blocks.pop());
 			let e = stack.at(-1);
 
-			// If the empty space position is greater than the file position, we break out of the loop
+			// If the start of the memory block overlaps with the file, we break out of the loop
 			if (e.at(-1) > f[1][0]) break e;
 
-			// If the file fits in the empty space, we slot it in and continue with the next file
+			// If the file fits in the empty block, we slot it in and continue with the next file
 			if (f[1].length <= e.length) {
 				// For every fragment of the file, we slot it into the empty memory block
 				for (let i = 0; i < f[1].length; i++) {
-					// We pop the first available empty space index off the current memory block
-					// as a pointer to where we should slot the file fragment
-					files[e.pop()] = f[0]; // Set the file fragment in the memory
-					files[f[1][i]] = '.';  // Reset the memory block where the file fragment was
+					// We pop the first available pointer off the current memory block array
+					// and use it to slot the file fragment into its new position
+					memory[e.pop()] = f[0]; // Slot the file fragment in its new position
+					memory[f[1][i]] = '.';  // Reset the old position of the file fragment to an empty space
 				}
-				// If the memory block is empty after slotting the file, we pop it off the stack
+				// If the memory block is full, we pop it off the stack and throw it away
 				if (e.length === 0) stack.pop();
 				break e;
 			}
 		}
-		// Push all empty memory blocks that have not been used back onto the empty array
+		// Push all empty memory that we've checked back onto the empty memory blocks array
 		while (stack.length > 0) {
-			empty.push(stack.pop());
+			empty_mem_blocks.push(stack.pop());
 		}
 	}
 
 	// Calculate the answer
-	for (let i = 0; i < files.length; i++) {
-		if (files[i] === '.') continue;
-		answer += files[i] * i;
+	for (let i = 0; i < memory.length; i++) {
+		if (memory[i] === '.') continue;
+		answer += memory[i] * i;
 	}
 
 	log_answer(answer, 2);
