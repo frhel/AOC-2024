@@ -22,12 +22,62 @@ let _TRAILHEAD = 0;
 let _TRAILHEADS = findTrailheads(data);
 let _TARGET = 9;
 
-solvePart1(data);
-solvePart2(data);
+solveBothParts(data);
+// solvePart1(data);
+// solvePart2(data);
 
 printTotalTime();
 
 // ************ Solution Functions ************
+// ************ Solution Functions ************
+/**
+ * Solves part 1 of the challenge and logs the answer to the console
+ * @param {Array} data - The parsed input data
+ */
+function solveBothParts(data) {
+	_TIMERS.both = performance.now(); // Start the timer for part 1
+
+	// Define vars
+	let answer_1 = 0, answer_2 = 0, current, stack, x, y, trailhead, dir, count;
+	let found = new Set();
+
+	// Loop through all trailheads and find all paths leading to the target
+	trailheads:
+	for (trailhead of _TRAILHEADS) {
+
+		found = new Set();
+		count = 0;
+		// Use a basic dfs to find all paths from the trailhead
+		stack = [trailhead];
+		while(stack.length > 0) {
+			current = stack.pop();
+			// If the current value is the target, add it to the found set
+			// Using a set as an easy way to avoid duplicates
+			// To read more about the Set object: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+			if (current.val === _TARGET) {
+				found.add(current.x+current.y*1000);
+				count++;
+				continue;
+			}
+
+			// Otherwise, keep looking for the target
+			for (dir of _DIRS) {
+				// x and y are the next coordinates to check
+				x = current.x + dir[0];
+				y = current.y + dir[1];
+				if (isWithinBounds(data, x, y) && data[y][x] === current.val + 1) {
+					// Push the next coordinates to the stack
+					stack.push({x, y, val: data[y][x]});
+				}
+			}
+		}
+		// Because the set only contains unique values, we can just add the size of the set to the answer
+		answer_1 += found.size;
+		answer_2 += count;
+	}
+	logBothAnswers([answer_1, answer_2]);
+}
+
 /**
  * Solves part 1 of the challenge and logs the answer to the console
  * @param {Array} data - The parsed input data
@@ -36,15 +86,16 @@ function solvePart1(data) {
 	_TIMERS.part_1 = performance.now(); // Start the timer for part 1
 
 	// Define vars
-	let answer = 0, current, stack, x, y, trailhead, dir;
+	let answer = 0, current, stack, x, y, trailhead, dir, count;
 	let found = new Set();
 
 	// Loop through all trailheads and find all paths leading to the target
 	trailheads:
 	for (trailhead of _TRAILHEADS) {
 
-		// Use a basic dfs to find all paths from the trailhead
 		found = new Set();
+		count = 0;
+		// Use a basic dfs to find all paths from the trailhead
 		stack = [trailhead];
 		while(stack.length > 0) {
 			current = stack.pop();
@@ -70,8 +121,6 @@ function solvePart1(data) {
 		// Because the set only contains unique values, we can just add the size of the set to the answer
 		answer += found.size;
 	}
-
-
 
 	log_answer(answer, 1);
 }
@@ -217,6 +266,25 @@ function log_answer(answer, part) {
 	console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
 	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 }
+
+function logBothAnswers(answers) {
+	let time = performance.now();
+	time = time - _TIMERS['both'];
+	let static_length = 12;
+	let time_unit = pickTimeUnit(time);
+	answers.forEach((answer, i) => {
+		let line_length = static_length + answer.toString().length + time_unit[0].toFixed(4).length;
+		let output = chalk(chalk.bold.white('Part ' + (i + 1) + ' [-'), chalk.yellow.bold(answer), chalk.white.bold('-]'));
+		console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
+		console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
+	})
+	static_length =35
+	let line_length = static_length + time_unit[0].toFixed(4).length;
+	let output = chalk(chalk.bold.white('Time For Both Parts: [-'), chalk.green.bold(time_unit[0].toFixed(4), chalk.red(time_unit[1]), chalk.white('-]')));
+	console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
+	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
+}
+
 
 /**
  * Print the day title plate to the console
