@@ -29,9 +29,8 @@ solveBothParts(data);
 printTotalTime();
 
 // ************ Solution Functions ************
-// ************ Solution Functions ************
 /**
- * Solves part 1 of the challenge and logs the answer to the console
+ * Solves both parts of the challenge at once and logs the answers to the console
  * @param {Array} data - The parsed input data
  */
 function solveBothParts(data) {
@@ -264,7 +263,6 @@ function log_answer(answer, part) {
 	let line_length = static_length + answer.toString().length + time_unit[0].toFixed(4).length;
 	let output = chalk(chalk.bold.white('Part ' + part + ' [-'), chalk.yellow.bold(answer), chalk.white.bold('-] in'), chalk.green.bold('[- ' + (time_unit[0]).toFixed(4)), chalk.red(time_unit[1]), chalk.green.bold('-]'));
 	console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
-	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 }
 
 function logBothAnswers(answers) {
@@ -276,13 +274,11 @@ function logBothAnswers(answers) {
 		let line_length = static_length + answer.toString().length + time_unit[0].toFixed(4).length;
 		let output = chalk(chalk.bold.white('Part ' + (i + 1) + ' [-'), chalk.yellow.bold(answer), chalk.white.bold('-]'));
 		console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
-		console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 	})
 	static_length =35
 	let line_length = static_length + time_unit[0].toFixed(4).length;
 	let output = chalk(chalk.bold.white('Time For Both Parts: [-'), chalk.green.bold(time_unit[0].toFixed(4), chalk.red(time_unit[1]), chalk.white('-]')));
 	console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
-	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 }
 
 
@@ -294,9 +290,7 @@ function printDayTitlePlate(day) {
 	console.log('\n');
 	let title = `-= DAY ${day} =-`;
 	let line_length = (_OUTPUT_LENGTH - (title.length) - 2) / 4;
-	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 	console.info(chalk.bold.blue('-'.repeat(Math.ceil(line_length)), `${chalk.bold.white(title)}`, '-'.repeat(line_length * 3)));
-	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 }
 
 /**
@@ -310,7 +304,6 @@ function printTotalTime() {
 	let line_length = static_length + time.toFixed(4).length;
 	let output = chalk(chalk.bold.white('Total Time: [-'), chalk.green.bold(time_unit[0].toFixed(4), chalk.red(time_unit[1]), chalk.white('-]')));
 	console.info(chalk.bold.white('---'), output, chalk.bold.white('-'.repeat(Math.abs(_OUTPUT_LENGTH - line_length))));
-	console.info(chalk.bold.blue('-'.repeat(_OUTPUT_LENGTH)));
 	console.log('\n');
 }
 // ************ End of Helper Functions ************
