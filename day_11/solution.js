@@ -19,8 +19,9 @@ printDayTitlePlate(_DAY); // Print a plate with the day of the challenge
 let input = readInputFile();
 let data = parseInput(input);
 
+let largest = 0;
 
-let _MEMO = {} // Define a memo object to store already calculated values
+let _MEMO = new Map(); // Define a memo object to store already calculated values
 _TIMERS.part_1 = performance.now(); // Start the timer for part 1
 solvePart1(data);
 
@@ -69,10 +70,10 @@ function solvePart2(data) {
  * @returns {Number} - The number of stones after the given number of blinks
  */
 function blink(stone, blinks) {
+	if (stone > largest) largest = stone; // Keep track of the largest stone value
 	blinks--; // Decrement the number of blinks so we can keep track of how many we have left
-	let key = `${stone}-${blinks}` // Create a key for the memo object
-	if (_MEMO[key] !== undefined) return _MEMO[key] // If the value is already in the memo object, return it
-	let new_num = 0; // Initialize a new number to store the new stone value
+	let key = stone * 100 + blinks // Create a key for the memo object
+	if (_MEMO.has(key)) return _MEMO.get(key); // If we have already calculated the value, return it
 	let total = 0; // Initialize a total to store the total number of stones
 
 	// While we have blinks left to do, go through the rules of the puzzle
@@ -82,11 +83,9 @@ function blink(stone, blinks) {
 		if (stone === 0) {
 			total += blink(1, blinks);
 		} else if (countDigits(stone) % 2 === 0) {
-			let str = stone.toString();
-			let left = parseInt(str.slice(0, str.length / 2));
-			let right = parseInt(str.slice(str.length / 2));
-			total += blink(Number(left), blinks)
-			total += blink(Number(right), blinks)
+			let pow = Math.pow(10, countDigits(stone) / 2);
+			total += blink(~~(stone / pow), blinks); // left half. ~~ is faster than Math.floor...?
+			total += blink(stone % pow, blinks); // right half
 		} else {
 			total += blink(stone * 2024, blinks);
 		}
@@ -95,7 +94,7 @@ function blink(stone, blinks) {
 		total = 1;
 	}
 	// Remember the total in the memo object and return it
-	if (_MEMO[key] === undefined) _MEMO[key] = total;
+	_MEMO.set(key, total);
 	return total;
 }
 
