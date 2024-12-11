@@ -53,6 +53,7 @@ function solvePart1(data) {
 function solvePart2(data) {
 	_ANSWERS.part2 = 0;
 
+	_MEMO = {}; // Reset the memo object
 	let blinks = 75;
 	for (let stone of data) {
 		_ANSWERS.part2 += blink(stone, blinks);
@@ -81,7 +82,7 @@ function blink(stone, blinks) {
 	if (blinks >= 0) {
 		if (stone === 0) {
 			total += blink(1, blinks);
-		} else if (blinksDigits(stone) % 2 === 0) {
+		} else if (countDigits(stone) % 2 === 0) {
 			let str = stone.toString();
 			let left = parseInt(str.slice(0, str.length / 2));
 			let right = parseInt(str.slice(str.length / 2));
