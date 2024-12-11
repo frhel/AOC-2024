@@ -53,7 +53,6 @@ function solvePart1(data) {
 function solvePart2(data) {
 	_ANSWERS.part2 = 0;
 
-	_MEMO = {}; // Reset the memo object
 	let blinks = 75;
 	for (let stone of data) {
 		_ANSWERS.part2 += blink(stone, blinks);
