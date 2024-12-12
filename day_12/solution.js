@@ -40,42 +40,42 @@ printTotalTime();
 function solvePart1(data) {
 
 	let regions = new Map();
+	let perimeter = [];
 	let seen = new Set();
+	let type = '';
 	for (let row = 0; row < data.length; row++) {
 		for (let col = 0; col < data[row].length; col++) {
-			let type = data[row][col];
-			let x = col;
-			let y = row;
-			if (seen.has([x, y])) continue;
-			let region = [];
-			let perimeter = [];
-			let queue = [[x, y]];
+			type = data[row][col];
+			let region = 0;
+			perimeter = [];
+			let queue = [[col, row]];
 			while (queue.length) {
-				let [x, y] = queue.shift();
+				let curr = queue.pop();
 				// if the cell is already in the set, skip it
-				if (seen.has(`${x},${y}`)) continue;
+				if (seen.has(curr[0]+curr[1]*10000)) continue;
 				// add the cell to the set
-				seen.add(`${x},${y}`);
+				seen.add(curr[0]+curr[1]*10000);
 				// add the cell to the region
-				region.push([x, y]);
+				region++;
 
 				// walk in all directions
-				for (let [dx, dy, d] of _DIRS) {
-					let nx = x + dx;
-					let ny = y + dy;
+				for (let dir of _DIRS) {
+					let nx = curr[0] + dir[0];
+					let ny = curr[1] + dir[1];
 					// if the cell is out of bounds, skip it
-					if (!isWithinBounds(data, nx, ny)) {
-						perimeter.push([x, y, d]);
-						continue;
-					} else if (data[ny][nx] !== type) {
-						perimeter.push([x, y, d]);
+					if (!isWithinBounds(data, nx, ny) || data[ny][nx] !== type) {
+						perimeter.push([curr[0], curr[1], dir[2]]);
 						continue;
 					}
 					queue.push([nx, ny]);
 				}
 			}
-			if (region.length > 0 && perimeter.length > 0) {
-				regions.set(type, [...regions.get(type) || [], {region, perimeter}]);
+			if (region > 0 && perimeter.length > 0) {
+				if (!regions.has(type)) {
+					regions.set(type, []);
+				}
+				regions.get(type).push({region, perimeter});
+
 			}
 		}
 	}
@@ -86,7 +86,7 @@ function solvePart1(data) {
 		for (let subregion of region) {
 			// console.log(type, region.length, perimeter.length);
 			// console.log(perimeters.get(type));
-			price += subregion.region.length * subregion.perimeter.length;
+			price += subregion.region * subregion.perimeter.length;
 		}
 	}
 
@@ -105,17 +105,17 @@ function solvePart2(data) {
 
 	let price = 0;
 
-	for (let [type, list] of regions) {
-		for (let region of list) {
+	for (let list of regions) {
+		for (let region of list[1]) {
 			let current = region.perimeter;
 			let sides = [];
 			let count = 0;
-			for (let [x, y, d] of _DIRS) {
-				sides.push([type, current.filter(([px, py, pd]) => pd === d)]);
+			for (let dir of _DIRS) {
+				sides.push(current.filter((side) => side[2] === dir[2]));
 			}
-			for (let side of sides) {
-				let [type, units] = side;
 
+			for (let side of sides) {
+				let units = side;
 				if (units[0][2] === 'd' || units[0][2] === 'u') {
 					units.sort((a, b) => a[0] - b[0]);
 					units.sort((a, b) => a[1] - b[1]);
@@ -128,23 +128,20 @@ function solvePart2(data) {
 				count++;
 
 				for (let i = 0; i < units.length; i++) {
-					let lastCount = count;
-					let [x, y, d] = units[i];
-					let [nx, ny] = next;
-					if (d === 'd' || d === 'u') {
-						if (x !== nx || y !== ny) {
+					if (units[i][2] === 'd' || units[i][2] === 'u') {
+						if (units[i][0] !== next[0] || units[i][1] !== next[1]) {
 							count++;
 						}
-						next = [x + 1, y];
-					} else if (d === 'l' || d === 'r') {
-						if (x !== nx || y !== ny) {
+						next = [units[i][0] + 1, units[i][1]];
+					} else {
+						if (units[i][0] !== next[0] || units[i][1] !== next[1]) {
 							count++;
 						}
-						next = [x, y + 1];
+						next = [units[i][0], units[i][1] + 1];
 					}
 				}
 			}
-			price += region.region.length * count;
+			price += region.region * count;
 		}
 	}
 
