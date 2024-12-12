@@ -39,9 +39,9 @@ printTotalTime();
  */
 function solvePart1(data) {
 
-	let perimeter = [];
+	let perimeter = []; // Array to keep track of the perimeter coordinates
 	let seen = new Set(); // Set to keep track of visited cells
-	let type = '';
+	let type = ''; // Variable to keep track of the current cell type
 
 	// Loop through the grid
 	for (let row = 0; row < data.length; row++) {
@@ -85,6 +85,7 @@ function solvePart1(data) {
 			// If the region size is greater than 0 and the perimeter is not empty, add the region_size to the regions map
 			if (region_size > 0 && perimeter.length > 0) {
 				if (!_REGIONS.has(type)) {
+					// Initialize the regions array for the current type if it doesn't exist
 					_REGIONS.set(type, []);
 				}
 				_REGIONS.get(type).push({region_size, perimeter});
@@ -95,6 +96,7 @@ function solvePart1(data) {
 
 
 	let price = 0;
+	// Loop through the regions and calculate the price
 	for (let list of _REGIONS) {
 		for (let region of list[1]) {
 			// console.log(type, region.length, perimeter.length);
@@ -112,21 +114,24 @@ function solvePart1(data) {
  */
 function solvePart2(data) {
 
-	let regions = _REGIONS;
-
 	let price = 0;
 
-	for (let list of regions) {
+	// Loop through the previously segmented regions
+	for (let list of _REGIONS) {
 		for (let region of list[1]) {
-			let current = region.perimeter;
 			let sides = [];
 			let count = 0;
+			// Split the perimeter into sides based on direction they were found
 			for (let dir of _DIRS) {
-				sides.push(current.filter((side) => side[2] === dir[2]));
+				sides.push(region.perimeter.filter((side) => side[2] === dir[2]));
 			}
 
+			// Loop through the perimeter by one side at a time
 			for (let side of sides) {
 				let units = side;
+				// Sort the units based on the direction of the side
+				// If the axis is horizontal, sort by x first, then y
+				// If the axis is vertical, sort by y first, then x
 				if (units[0][2] === 'd' || units[0][2] === 'u') {
 					units.sort((a, b) => a[0] - b[0]);
 					units.sort((a, b) => a[1] - b[1]);
@@ -135,23 +140,27 @@ function solvePart2(data) {
 					units.sort((a, b) => a[0] - b[0]);
 				}
 
+				// Initialize the next unit to the first unit
 				let next = units[0];
-				count++;
-
+				count++; // Increment the count for the first unit
 				for (let i = 0; i < units.length; i++) {
+					// For each unit, if the unit is not the same as the next unit, increment the count
+
+					// If either the x or y coordinate is different, increment the count
+					if (units[i][0] !== next[0] || units[i][1] !== next[1]) {
+						count++;
+					}
+
+					// If the axis is horizontal, increment the x coordinate by 1
+					// If the axis is vertical, increment the y coordinate by 1
 					if (units[i][2] === 'd' || units[i][2] === 'u') {
-						if (units[i][0] !== next[0] || units[i][1] !== next[1]) {
-							count++;
-						}
 						next = [units[i][0] + 1, units[i][1]];
 					} else {
-						if (units[i][0] !== next[0] || units[i][1] !== next[1]) {
-							count++;
-						}
 						next = [units[i][0], units[i][1] + 1];
 					}
 				}
 			}
+			// Calculate the price for the region
 			price += region.region_size * count;
 		}
 	}
