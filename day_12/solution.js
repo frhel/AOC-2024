@@ -20,7 +20,7 @@ let data = parseInput(input);
 
 let _DIRS = [[0, 1, 'd'], [1, 0, 'r'], [0, -1, 'u'], [-1, 0, 'l']]; // Directions: Right, Down, Left, Up
 
-let _REGIONS = new Map();
+let _REGIONS = new Map(); // Map to keep track of regions
 
 _TIMERS.part_1 = performance.now(); // Start the timer for part 1
 _ANSWERS.part1 = solvePart1(data);
@@ -39,42 +39,55 @@ printTotalTime();
  */
 function solvePart1(data) {
 
-	let regions = new Map();
 	let perimeter = [];
-	let seen = new Set();
+	let seen = new Set(); // Set to keep track of visited cells
 	let type = '';
+
+	// Loop through the grid
 	for (let row = 0; row < data.length; row++) {
 		for (let col = 0; col < data[row].length; col++) {
-			type = data[row][col];
-			let region = 0;
-			perimeter = [];
-			let queue = [[col, row]];
-			while (queue.length) {
-				let curr = queue.pop();
-				// if the cell is already in the set, skip it
-				if (seen.has(curr[0]+curr[1]*10000)) continue;
-				// add the cell to the set
-				seen.add(curr[0]+curr[1]*10000);
-				// add the cell to the region
-				region++;
 
-				// walk in all directions
+			// Grab the type of the current cell
+			type = data[row][col];
+			// Reset the region size counter
+			let region_size = 0;
+			// Reset the perimeter array
+			perimeter = [];
+
+			// Start a dfs from the current cell
+			let queue = [[col, row]];
+			dfs:
+			while (queue.length) {
+				let curr = queue.pop(); // Pop the last cell from the queue
+				// If the cell is already in the set, skip it
+				if (seen.has(curr[0]+curr[1]*10000)) continue;
+				// Add the cell to the set
+				seen.add(curr[0]+curr[1]*10000);
+				// Increment the region size
+				region_size++;
+
+				// Walk in all directions
 				for (let dir of _DIRS) {
+					// Next cell coordinates
 					let nx = curr[0] + dir[0];
 					let ny = curr[1] + dir[1];
-					// if the cell is out of bounds, skip it
+					// If the cell is out of bounds, skip it
 					if (!isWithinBounds(data, nx, ny) || data[ny][nx] !== type) {
+						// Push the current cell to the perimeter in the form [x, y, direction]
 						perimeter.push([curr[0], curr[1], dir[2]]);
 						continue;
 					}
+					// Add the next cell to the queue
 					queue.push([nx, ny]);
 				}
 			}
-			if (region > 0 && perimeter.length > 0) {
-				if (!regions.has(type)) {
-					regions.set(type, []);
+
+			// If the region size is greater than 0 and the perimeter is not empty, add the region_size to the regions map
+			if (region_size > 0 && perimeter.length > 0) {
+				if (!_REGIONS.has(type)) {
+					_REGIONS.set(type, []);
 				}
-				regions.get(type).push({region, perimeter});
+				_REGIONS.get(type).push({region_size, perimeter});
 
 			}
 		}
@@ -82,15 +95,13 @@ function solvePart1(data) {
 
 
 	let price = 0;
-	for (let [type, region] of regions) {
-		for (let subregion of region) {
+	for (let list of _REGIONS) {
+		for (let region of list[1]) {
 			// console.log(type, region.length, perimeter.length);
 			// console.log(perimeters.get(type));
-			price += subregion.region * subregion.perimeter.length;
+			price += region.region_size * region.perimeter.length;
 		}
 	}
-
-	_REGIONS = regions
 
 	return price
 }
@@ -141,7 +152,7 @@ function solvePart2(data) {
 					}
 				}
 			}
-			price += region.region * count;
+			price += region.region_size * count;
 		}
 	}
 
