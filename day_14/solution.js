@@ -21,13 +21,6 @@ let data = parseInput(input);
 
 solveBothParts(data);
 
-// _TIMERS.part_1 = performance.now(); // Start the timer for part 1
-// _ANSWERS.part1 = solvePart1(data);
-// logAnswer(_ANSWERS.part1, 1);
-
-// _TIMERS.part_2 = performance.now(); // Start the timer for part 2
-// _ANSWERS.part2 = solvePart2(data);
-// logAnswer(_ANSWERS.part2, 2);
 
 printTotalTime();
 
@@ -37,25 +30,27 @@ printTotalTime();
  * @param {Array} bots - The bots to use in the solution
  */
 function solveBothParts(bots) {
-	_TIMERS.both = performance.now();
+	_TIMERS.part_1 = performance.now();
+	_TIMERS.part_2 = performance.now();
 
 	// Define the upper bounds of the grid
-	let bounds = new Map([['x', 101 - 1], ['y', 103 - 1]]);
+	let bounds_x = 101
+	let bounds_y = 103
 
 	// The counter for the number of loops
 	let seconds = 0;
 
 	// Upper or lower bound per direction  w, e, n, s
-	let quad_defs = [
-		~~(bounds.get('x') / 2) - 1,
-		Math.ceil(bounds.get('x') / 2) + 1,
-		~~(bounds.get('y') / 2) - 1,
-		Math.ceil(bounds.get('y') / 2) + 1
-	];
+	let quad_defs = [49, 51, 50, 52];
 
 	// Tracker for the number of bots in each quadrant
-	let quads = new Map([['nw', 0], ['ne', 0], ['sw', 0], ['se', 0]]);
+	// w, e, n, s
+	let quads = [0, 0, 0, 0];
 
+	// Build the map of the grid
+	let map = buildMap(bounds_x, bounds_y);
+	// Update the map cells with which quadrant they are in
+	setMapQuadrants(quad_defs, map);
 
 	// Run the loop until we have both answers
 	main:
@@ -64,30 +59,33 @@ function solveBothParts(bots) {
 		seconds++;
 
 		// On each loop, move the bots and update the quadrant tally
-		bots.forEach((bot, j) => {
+		for (let bot of bots) {
 			// Next position for the bot based on velocity
 			let nx = bot.p.x + bot.v.x;
 			let ny = bot.p.y + bot.v.y;
 
 			// Do a bounds check and wrap around if necessary
-			bot = wrapAround(nx, ny, bot, bounds);
+			bot = wrapAround(nx, ny, bot, bounds_x, bounds_y);
 
+			// console.log(bot.p, map.length, map[0].length)
 			// Update the quadrant tally
-			setQuad(bot, quad_defs, quads);
-		});
+			setQuad(bot, map, quads);
+		};
 		// If we are on the 100th second, calculate the answer for part 1 and log it
 		if (seconds === 100) {
-			_ANSWERS.part1 = quads.get('nw') * quads.get('se') * quads.get('ne') * quads.get('sw');
+			console.log(quads);
+			_ANSWERS.part1 = quads.reduce((acc, val) => acc * val);
 			logAnswer(_ANSWERS.part1, 1);
 		} else if (seconds > 100) {
 			// If we are past the 100th second, check if we have a solution for part 2
 			// Check if any of the quadrants have more than half the bots
-			for (let [quad, count] of quads) {
+			for (let count of quads) {
 				// If we have more than half the bots in a quadrant, we most likely have a solution
 				if (count > 0.5 * bots.length) {
 					// Log the answer for part 2 and break the loop
 					// Uncomment the following lines to print the grid for part 2
-					// map = buildMap(bots, bounds);
+					// let map = buildMap(bounds);
+					// map = updateMap(bots, map);
 					// printGrid(map);
 					_ANSWERS.part2 = seconds;
 					logAnswer(_ANSWERS.part2, 2);
@@ -107,11 +105,11 @@ function solveBothParts(bots) {
  * @param {Map} bounds - The bounds of the grid
  * @returns {Object} - The bot with the updated position
  */
-function wrapAround(nx, ny, bot, bounds) {
-	if (nx > bounds.get('x')) nx = nx - bounds.get('x') - 1;
-	else if (nx < 0) nx = bounds.get('x') + 1 + nx;
-	if (ny > bounds.get('y')) ny = ny - bounds.get('y') - 1;
-	else if (ny < 0) ny = bounds.get('y') + 1 + ny;
+function wrapAround(nx, ny, bot, bounds_x, bounds_y) {
+	if (nx >= bounds_x) nx = nx - bounds_x;
+	else if (nx < 0) nx = bounds_x + nx;
+	if (ny >= bounds_y) ny = ny - bounds_y;
+	else if (ny < 0) ny = bounds_y + ny;
 	bot.p.x = nx;
 	bot.p.y = ny;
 	return bot;
@@ -123,21 +121,58 @@ function wrapAround(nx, ny, bot, bounds) {
  * @param {Array} quad_defs - The definitions for the quadrants
  * @param {Map} quads - The tally of bots in each quadrant
  */
-function setQuad(bot, quad_defs, quads) {
+function setQuad(bot, map, quads) {
 	// Determine the quadrant the bot is in
-	let x = bot.p.x <= quad_defs[0] ? 'w' : bot.p.x >= quad_defs[1] ? 'e' : 'm';
-	let y = bot.p.y <= quad_defs[2] ? 'n' : bot.p.y >= quad_defs[3] ? 's' : 'm';
+	// let quad = getQuadrant(bot.p.x, bot.p.y, quad_defs);
+	// console.log(bot.p);
+	// console.log(map[bot.p.y])
+	// console.log(bot.p, map[bot.p.y][bot.p.x])
+	let quad = map[bot.p.y][bot.p.x];
 
 	// If the bot was in the middle before, don't decrement anything as it was not in a quadrant
-	if (bot.quad !== 'm') { quads.set(bot.quad, quads.get(bot.quad) - 1); }
-
-	// If the bot is in the middle, set the quadrant to 'm'
-	if (x === 'm' || y === 'm') bot.quad = 'm';
+	if (bot.quad >= 0) { quads[bot.quad] -= 1; }
+	if (quad < 0) { bot.quad = -1; }
 	else {
-		// Otherwise, set the quadrant based on the x and y values and increment the tally
-		bot.quad = y + x;
-		quads.set(bot.quad, quads.get(bot.quad) + 1);
+		bot.quad = quad;
+		quads[bot.quad] += 1;
 	}
+}
+
+function setMapQuadrants(quad_defs, map) {
+	// Set the quadrant value for each cell in the map
+	map.forEach((row, y) => {
+		row.forEach((cell, x) => {
+			let quad = getQuadrant(x, y, quad_defs);
+			map[y][x] = quad;
+		});
+	});
+}
+
+function getQuadrant(x, y, quad_defs) {
+	// Quadrant definitions are
+	// 0: top left
+	// 1: bottom left
+	// 2: top right
+	// 3: bottom right
+
+	// Set y and x quadrants to -1
+	let yquad = -1;
+	let xquad = -1;
+
+	// Check if the y coordinate is on the top or bottom
+	if (y <= quad_defs[2]) yquad = 0;
+	else if (y >= quad_defs[3]) yquad = 1;
+	// If the y coordinate is not in the top or bottom, return -1
+	if (yquad < 0) return yquad;
+
+	// Check if the x coordinate is on the left or right
+	if (x <= quad_defs[0]) xquad = 0;
+	else if (x >= quad_defs[1]) xquad = 2;
+	// If the x coordinate is not on the left or right, return -1
+	if (xquad < 0) return xquad;
+
+	// Return the sum of the x and y quadrants
+	return yquad + xquad
 }
 
 /**
@@ -145,11 +180,15 @@ function setQuad(bot, quad_defs, quads) {
  * @param {Array} bots - The bots to place on the map
  * @param {Map} bounds - The bounds of the grid
  */
-function buildMap(bots, bounds) {
-	let map = Array.from({length: bounds.get('y') + 1}, () => Array(bounds.get('x') + 1).fill('.'));
-	bots.forEach(bot => {
-		map[bot.p.y][bot.p.x] = '#';
-	});
+function buildMap(bounds_x, bounds_y) {
+	let map = [];
+	for (let y = 0; y <= bounds_y; y++) {
+		let row = [];
+		for (let x = 0; x <= bounds_x; x++) {
+			row.push('.');
+		}
+		map.push(row);
+	}
 	return map;
 }
 
@@ -172,7 +211,6 @@ function updateMap(bots, map) {
  * Remember to set the @param and @returns values
  */
 function parseInput(input) {
-
 	let data = input.split('\n').map(line => {
 		let match = line.match(/\-{0,1}\d+,\-{0,1}\d+/g);
 		let coords = match.map(coord => coord.split(',').map(Number));
@@ -180,8 +218,8 @@ function parseInput(input) {
 		return coords;
 	});
 	return data;
-
 }
+
 // ************ End of Solution Functions ************
 // ************ End of Main Logic Stuff ************
 
