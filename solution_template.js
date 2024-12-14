@@ -36,8 +36,12 @@ printTotalTime();
  */
 function solvePart1(data) {
 
+	let answer = 0;
 
 
+
+
+	return answer;
 }
 
 /**
@@ -46,8 +50,10 @@ function solvePart1(data) {
  */
 function solvePart2(data) {
 
+	let answer = 0;
 
 
+	return answer;
 }
 
 
