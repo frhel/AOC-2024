@@ -67,7 +67,6 @@ function solveBothParts(bots) {
 			// Do a bounds check and wrap around if necessary
 			bot = wrapAround(nx, ny, bot, bounds_x, bounds_y);
 
-			// console.log(bot.p, map.length, map[0].length)
 			// Update the quadrant tally
 			setQuad(bot, map, quads);
 		};
