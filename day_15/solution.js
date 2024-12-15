@@ -45,40 +45,61 @@ printTotalTime();
 function solvePart1(map, moves) {
 
 	let answer = 0;
+	// Create a deep copy of the map
 	let map_copy = map.map(row => [...row]);
 
+	// Iterate over the moves
 	for (let move of moves) {
+		// Save the directions
 		let [dx, dy] = _DIRS[move];
+		// Save the current position of the bot
 		let [x, y] = _BOT_POS;
+		// Save the new position of the bot
 		let [nx, ny] = [x + dx, y + dy];
+
+		// If the new position is a box
 		if (map_copy[ny][nx] === _BOX) {
+			// Create an array to hold the boxes and add the current box to it
 			let boxes = [[nx, ny]];
+
+			// Check if there is another box in the same direction
 			let [bx, by] = [nx + dx, ny + dy];
 
+			// If there is a box in the same direction, add it to the boxes array
+			// and keep adding boxes until there are no more boxes in the same direction
 			while(map_copy[by][bx] === _BOX) {
 				boxes.push([bx, by]);
 				bx += dx;
 				by += dy;
 			}
+
+			// If the next position after the boxes is a wall, skip any further processing
+			// becaue the boxes can't be moved
 			if (map_copy[by][bx] === _WALL) continue;
 			else {
+				// Else move the boxes we found
 				while (boxes.length) {
+					// Pop the last box from the boxes array
 					let [bx, by] = boxes.pop();
+					// Set the new position of the box
 					let [nbx, nby] = [bx + dx, by + dy];
+					// Update the map with the new box position
 					map_copy[nby][nbx] = _BOX;
 				}
-				map_copy[y][x] = '.';
-				map_copy[ny][nx] = _BOT;
-				_BOT_POS = [nx, ny];
+				// Update the map with the new bot position
+				map_copy[y][x] = '.'; // Set the old bot position on the map to empty
+				map_copy[ny][nx] = _BOT; // Set the new bot position on the map to the bot
+				_BOT_POS = [nx, ny]; // Update the bot's saved position
 			}
 		} else if (map_copy[ny][nx] === '.') {
-			map_copy[y][x] = '.';
-			map_copy[ny][nx] = _BOT;
-			_BOT_POS = [nx, ny];
+			// If the new position is empty, move the bot
+			map_copy[y][x] = '.'; // Set the old bot position on the map to empty
+			map_copy[ny][nx] = _BOT; // Set the new bot position on the map to the bot
+			_BOT_POS = [nx, ny]; // Update the bot's saved position
 		}
 	}
 
-
+	// Iterate over the map to find the boxes and calculate the answer
 	for (let y = 0; y < map_copy.length; y++) {
 		for (let x = 0; x < map_copy[y].length; x++) {
 			if (map_copy[y][x] === _BOX) {
@@ -99,23 +120,36 @@ function solvePart2(map, moves) {
 
 	let answer = 0;
 
+	// Alter the map to be double the width and save the new, wider boxes
+	// to an array of objects with left, right and y coordinates
 	let [map_copy, boxes] = alterMap(map);
+	// Alter the _BOX variable to be an array with the left and right box characters
 	_BOX = ['[', ']'];
+	// Find the updated bot position and save it
 	_BOT_POS = findBot(map_copy);
 
 	for (let move of moves) {
-		let [dx, dy] = _DIRS[move];
-		let [x, y] = _BOT_POS;
-		let [nx, ny] = [x + dx, y + dy];
+		let [dx, dy] = _DIRS[move]; // Save the directions
+		let [x, y] = _BOT_POS; // Save the current position of the bot
+		let [nx, ny] = [x + dx, y + dy]; // Save the new position of the bot
+
+		// If the new position is either half of a box
 		if (_BOX.includes(map_copy[ny][nx])) {
+			// Define an array to hold the found boxes in the same direction
 			let found = [];
-			// console.log(boxes, ny, nx, map_copy[ny][nx])
+			// Locate the object of the box in the boxes array and add it to the found array
 			let box = boxes.find(box => (box.xl === nx || box.xr === nx) && box.y === ny);
 			found.push(box);
-			// console.log(box)
+
+			// To find a box in the same direction, we need to increment x axis by double the direction
+			// Set the next box coordinates on the horizontal axis in case the direction is not vertical
 			let [bx, by] = [nx + dx * 2, ny + dy];
+
+			// If the direction is vertical, we need to recursively find the boxes in the same direction
+			// because the boxes are 2 characters wide, so there is a potential tree structure to traverse
 			if (dy !== 0) found = [...found, ...findBoxes(box, boxes, map_copy, dx, dy)];
 			else {
+				// Else, handle the horizontal direction just like in part 1, except we need to increment by 2
 				while (_BOX.includes(map_copy[by][bx])) {
 					let box = boxes.find(box => (box.xl === bx || box.xr === bx) && box.y === by);
 					found.push(box);
@@ -123,44 +157,60 @@ function solvePart2(map, moves) {
 					by += dy;
 				}
 			}
-			if (found.includes(_WALL)) continue;
-			if (map_copy[by][bx] === _WALL) continue;
+
+			// Check if the found array contains a wall, if it does, skip the processing
+			// Also check if the new position is a wall, if it is, skip the processing
+			if (found.includes(_WALL) || map_copy[by][bx] === _WALL) continue;
 			else {
+				// Create an array to hold the processed boxes and an array to hold the empty spaces
 				let processed = [];
-				let empty = [];
+				let empty = []; // These are the empty spaces that the boxes will leave behind
+
+				// Process all the boxes we found
 				while (found.length > 0) {
 					let curr_box = found.pop();
+
+					// Push the old box coordinates to the empty array
 					empty.push(`${curr_box.xl},${curr_box.y}`);
 					empty.push(`${curr_box.xr},${curr_box.y}`);
-					let curr_box_idx = boxes.every((box, idx) => {
-						if (box.xl === curr_box.xl && box.xr === curr_box.xr && box.y === curr_box.y) return idx;
-					})
+
+					// Update the box coordinates with the new ones
 					curr_box.xl += dx;
 					curr_box.xr += dx;
 					curr_box.y += dy;
+
+					// Draw the new box on the map
 					map_copy[curr_box.y][curr_box.xl] = '[';
 					map_copy[curr_box.y][curr_box.xr] = ']';
-					boxes[curr_box_idx] = curr_box;
+
+					// Push the new box coordinates to the processed array
 					processed.push(`${curr_box.xl},${curr_box.y}`);
 					processed.push(`${curr_box.xr},${curr_box.y}`);
 
 				}
+
+				// Process the empty spaces and update the map
 				for (let blank of empty) {
+					// If the empty space has had another box put in it, skip it
 					if (processed.includes(blank)) continue;
+					// Else, update the map with the empty space
 					let [bx, by] = blank.split(',').map(Number);
 					map_copy[by][bx] = '.';
 				}
+				// Update the bot position on the map as well as the saved bot position
 				map_copy[y][x] = '.';
 				map_copy[ny][nx] = _BOT;
 				_BOT_POS = [nx, ny];
 			}
 		} else if (map_copy[ny][nx] === '.') {
+			// If the new position is empty, move the bot
 			map_copy[y][x] = '.';
 			map_copy[ny][nx] = _BOT;
 			_BOT_POS = [nx, ny];
 		}
 	}
 
+	// Calculate the answer by iterating over the map and finding the left side of each box
 	for (let y = 0; y < map_copy.length; y++) {
 		for (let x = 0; x < map_copy[y].length; x++) {
 			if (map_copy[y][x] === '[')
@@ -171,23 +221,40 @@ function solvePart2(map, moves) {
 	return answer;
 }
 
+/**
+ * Find all the boxes in the same vertical direction
+ * @param {Object} box - The box object to find the boxes from
+ * @param {Array} boxes - The array of all the boxes
+ * @param {Array} map - The map of the area
+ * @param {Number} dx - The x direction
+ * @param {Number} dy - The y direction
+ * @param {Array} found - The array of found boxes
+ * @returns {Array} - The array of found boxes
+ */
 function findBoxes(box, boxes, map, dx, dy, found = []) {
-	// console.log('Box:', box)
+	// increment all the box coordinates by the direction
 	let [bxl, bxr, by] = [box.xl + dx, box.xr + dx, box.y + dy];
-	// console.log('bxl:', bxl, 'bxr:', bxr, 'by:', by)
+
+	// If the new box coordinates are a wall, add a wall to the found array and return it
 	if (map[by][bxl] === _WALL || map[by][bxr] === _WALL) {
 		found.push(_WALL);
 		return found;
 	}
 
+	// If the new box coordinates contain a box character, find the box object and add it to the found array
+	// Check the left side of the box
 	if (_BOX.includes(map[by][bxl])) {
 		let curr_box = boxes.find(box => (box.xl === bxl || box.xr) === bxl && box.y === by);
-		// console.log('curr_box:', curr_box)
+
+		// If the box is already in the found array, skip it
 		if (curr_box !== undefined && !found.includes(curr_box)) {
 			found.push(curr_box);
+			// Recursively find the boxes using the current found box
 			found = [...findBoxes(curr_box, boxes, map, dx, dy, found)];
 		}
 	}
+
+	// Check the right side of the box
 	if (_BOX.includes(map[by][bxr])) {
 		let curr_box = boxes.find(box => (box.xl === bxr || box.xr === bxr) && box.y === by);
 		if (curr_box !== undefined && !found.includes(curr_box)) {
@@ -196,13 +263,16 @@ function findBoxes(box, boxes, map, dx, dy, found = []) {
 		}
 	}
 
-	if (found.length === 0) return [];
-
 	return found;
 
 
 }
 
+/** Make a new map with every cell being double the width. Also return an array of box objects
+ * @param {Array} map - The map to alter
+ * @returns {Array} - The altered map
+ * @returns {Array} - Array of box objects
+ * */
 function alterMap(map) {
 	let newMap = [];
 	let boxes = [];
@@ -225,6 +295,11 @@ function alterMap(map) {
 	return [newMap, boxes];
 }
 
+/**
+ * Find the bot on the map
+ * @param {Array} map - The map to find the bot on
+ * @returns {Array} - The coordinates of the bot
+ * */
 function findBot(map) {
 	for (let y = 0; y < map.length; y++) {
 		for (let x = 0; x < map[y].length; x++) {
