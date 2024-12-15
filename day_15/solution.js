@@ -51,11 +51,14 @@ function solvePart1(map, moves) {
 	// Iterate over the moves
 	for (let move of moves) {
 		// Save the directions
-		let [dx, dy] = _DIRS[move];
+		let dx = _DIRS[move][0];
+		let dy = _DIRS[move][1];
 		// Save the current position of the bot
-		let [x, y] = _BOT_POS;
+		let x = _BOT_POS[0];
+		let y = _BOT_POS[1];
 		// Save the new position of the bot
-		let [nx, ny] = [x + dx, y + dy];
+		let nx = x + dx;
+		let ny = y + dy;
 
 		// If the new position is a box
 		if (map_copy[ny][nx] === _BOX) {
@@ -63,7 +66,8 @@ function solvePart1(map, moves) {
 			let boxes = [[nx, ny]];
 
 			// Check if there is another box in the same direction
-			let [bx, by] = [nx + dx, ny + dy];
+			let bx = nx + dx;
+			let by = ny + dy;
 
 			// If there is a box in the same direction, add it to the boxes array
 			// and keep adding boxes until there are no more boxes in the same direction
@@ -129,9 +133,17 @@ function solvePart2(map, moves) {
 	_BOT_POS = findBot(map_copy);
 
 	for (let move of moves) {
-		let [dx, dy] = _DIRS[move]; // Save the directions
-		let [x, y] = _BOT_POS; // Save the current position of the bot
-		let [nx, ny] = [x + dx, y + dy]; // Save the new position of the bot
+		// Save the directions
+		let dx = _DIRS[move][0];
+		let dy = _DIRS[move][1];
+
+		// Save the current position of the bot
+		let x = _BOT_POS[0];
+		let y = _BOT_POS[1];
+
+		// Save the new position of the bot
+		let nx = x + dx;
+		let ny = y + dy;
 
 		// If the new position is either half of a box
 		if (_BOX.includes(map_copy[ny][nx])) {
@@ -143,7 +155,8 @@ function solvePart2(map, moves) {
 
 			// To find a box in the same direction, we need to increment x axis by double the direction
 			// Set the next box coordinates on the horizontal axis in case the direction is not vertical
-			let [bx, by] = [nx + dx * 2, ny + dy];
+			let bx = nx + dx * 2;
+			let by = ny;
 
 			// If the direction is vertical, we need to recursively find the boxes in the same direction
 			// because the boxes are 2 characters wide, so there is a potential tree structure to traverse
@@ -194,8 +207,8 @@ function solvePart2(map, moves) {
 					// If the empty space has had another box put in it, skip it
 					if (processed.includes(blank)) continue;
 					// Else, update the map with the empty space
-					let [bx, by] = blank.split(',').map(Number);
-					map_copy[by][bx] = '.';
+					let split = blank.split(',').map(Number);
+					map_copy[split[1]][split[0]] = '.';
 				}
 				// Update the bot position on the map as well as the saved bot position
 				map_copy[y][x] = '.';
