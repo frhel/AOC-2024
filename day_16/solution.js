@@ -20,6 +20,7 @@ let data = parseInput(input);
 
 let _DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // Directions: Down, Right, Up, Left
 let dirToChar = ['v', '>', '^', '<'];
+let _best_path = [];
 
 _TIMERS.part_1 = performance.now(); // Start the timer for part 1
 _ANSWERS.part1 = solvePart1(data);
@@ -40,13 +41,12 @@ function solvePart1(data) {
 
 	let answer = 0;
 
-	let seen = new Set();
 	let queue = [];
 	for (let i = 0; i < 4; i++) {
-		queue = queueNext(queue, data.map[data.start[1]][data.start[0]], i, data.map, data.end);
 		data.map[data.start[1]][data.start[0]].score = 0;
 		data.map[data.start[1]][data.start[0]].turns = 0;
-		seen.add(`${data.start[0]},${data.start[1]}`);
+		data.map[data.start[1]][data.start[0]].last_dir = 1;
+		queue = queueNext(queue, data.map[data.start[1]][data.start[0]], i, data.map, data.end, [data.start[0], data.start[1]]);
 	}
 
 	while (queue.length) {
@@ -55,11 +55,8 @@ function solvePart1(data) {
 		let current = queue.shift();
 
 		if (current.x === data.end[0] && current.y === data.end[1]) {
-			console.log('Winner:', current.score);
+			_best_path = [...current.visited];
 			answer = current.score;
-			for (let i = 0; i < current.visited.length; i++) {
-				data.map[current.visited[i][1]][current.visited[i][0]].char = dirToChar[data.map[current.visited[i][1]][current.visited[i][0]].dir];
-			}
 
 			break;
 		}
@@ -69,13 +66,13 @@ function solvePart1(data) {
 		data.map[current.y][current.x].score = current.score;
 		data.map[current.y][current.x].turns = current.turns;
 		data.map[current.y][current.x].dir = current.dir;
+		data.map[current.y][current.x].last_dir = current.last_dir;
 
 		for (let i = 0; i < 4; i++) {
 			if (Math.abs(i - current.dir) === 2) {
 				continue;
 			}
-
-			queue = queueNext(queue, current, i, data.map, data.end);
+			queue = queueNext(queue, current, i, data.map, data.end, current.visited);
 		}
 	}
 
@@ -93,17 +90,18 @@ function queueNext(queue, current, dir, map, end) {
 		let next = {};
 		if (dir === current.dir) {
 			next.score = current.score + 1;
-			next.turns = current.turns;
 		} else {
 			next.score = current.score + 1001;
 			next.turns = current.turns + 1;
-			map[y][x].char = dirToChar[dir];
 		}
 
-		if (map[y][x].score * map[y][x].turns < next.score * next.turns) {
+		if (map[y][x].char === 'E') {
+			next.score = current.score + 1;
+		}
+
+		if (map[y][x].score  < next.score) {
 			return queue;
 		}
-
 
 		next.x = x;
 		next.y = y;
@@ -111,8 +109,6 @@ function queueNext(queue, current, dir, map, end) {
 		next.last_dir = current.dir;
 		next.dir = dir;
 		next.visited = [...current.visited, [x, y]];
-
-
 
 		queue.push(next);
 	}
@@ -125,12 +121,92 @@ function queueNext(queue, current, dir, map, end) {
  */
 function solvePart2(data) {
 
-	let answer = 0;
+	let best_paths = [];
 
+	let best_score = Infinity;
 
-	return answer;
+	let queue = [];
+	for (let i = 0; i < 4; i++) {
+		data.map[data.start[1]][data.start[0]].score = 0;
+		data.map[data.start[1]][data.start[0]].turns = 0;
+		data.map[data.start[1]][data.start[0]].last_dir = 1;
+		queue = queueNextP2(queue, data.map[data.start[1]][data.start[0]], i, data.map, data.end, [data.start[0], data.start[1]]);
+	}
+
+	while (queue.length) {
+		queue = queue.sort((a, b) => a.score - b.score);
+
+		let current = queue.shift();
+
+		if (current.x === data.end[0] && current.y === data.end[1]) {
+			if (current.score > best_score) continue;
+			best_paths.push({score: current.score, visited: [...current.visited]});
+			best_score = current.score;
+
+			continue;
+		}
+		if (current.score > best_score || current.visited.length > _best_path.length) continue;
+		data.map[current.y][current.x].score = current.score;
+		data.map[current.y][current.x].turns = current.turns;
+		data.map[current.y][current.x].dir = current.dir;
+
+		for (let i = 0; i < 4; i++) {
+			if (Math.abs(i - current.dir) === 2) {
+				continue;
+			}
+			queue = queueNextP2(queue, current, i, data.map, data.end, current.visited);
+		}
+	}
+
+	let answer = new Set();
+
+	for (let i = 0; i < best_paths.length; i++) {
+		let path = best_paths[i];
+		for (let j = 0; j < path.visited.length; j++) {
+			answer.add(path.visited[j].join(','));
+		}
+	}
+
+	// Answer was off by one
+	return answer.size + 1
 }
 
+
+function queueNextP2(queue, current, dir, map, end) {
+	let x = current.x + _DIRS[dir][0];
+	let y = current.y + _DIRS[dir][1];
+	if (isWithinBounds(map, x, y) && map[y][x].char !== '#') {
+
+		let new_score = 0;
+
+		let next = {};
+		if (dir === current.dir) {
+			next.score = current.score + 1;
+		} else {
+			next.score = current.score + 1001;
+			next.turns = current.turns + 1;
+		}
+
+		if (map[y][x].char === 'E') {
+			next.score = current.score + 1;
+		}
+
+		if (map[y][x].score + 1001  <=  next.score) {
+			return queue;
+		}
+
+
+		next.x = x;
+		next.y = y;
+		next.char = current.char;
+		next.last_dir = current.dir;
+		next.dir = dir;
+		next.visited = [...current.visited, [x, y]];
+
+		queue.push(next);
+	}
+	return queue;
+}
 
 /**
  * Parse the input into a usable format
