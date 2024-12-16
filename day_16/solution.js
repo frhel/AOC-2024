@@ -40,84 +40,101 @@ function solvePart1(data) {
 
 	let answer = 0;
 
-	let seen = new Set();
-	let queue = [];
-	for (let i = 0; i < 4; i++) {
-		queue = queueNext(queue, data.map[data.start[1]][data.start[0]], i, data.map, data.end);
-		data.map[data.start[1]][data.start[0]].score = 0;
-		data.map[data.start[1]][data.start[0]].turns = 0;
-		seen.add(`${data.start[0]},${data.start[1]}`);
+	let start = [];
+	let end = 'E';
+
+	let map = [];
+	for (let y = 0; y < data.length; y++) {
+		let row = [];
+		for (let x = 0; x < data[y].length; x++) {
+			let char = data[y][x];
+			if (char === 'S') start = [x, y];
+			let cell = { char: data[y][x], x, y, score: 0, dir: 1};
+			row.push(cell);
+		}
+		map.push(row);
 	}
+
+
+	let best_score = Infinity;
+	let visited = new Map();
+
+	let queue = []
+	queue.push({ char: 'S', x: start[0], y: start[1], score: 0, dir: 1 });
 
 	while (queue.length) {
-		queue = queue.sort((a, b) => a.score - b.score);
-
+		queue.sort((a, b) => a.score - b.score);
 		let current = queue.shift();
-
-		if (current.x === data.end[0] && current.y === data.end[1]) {
-			console.log('Winner:', current.score);
-			answer = current.score;
-			for (let i = 0; i < current.visited.length; i++) {
-				data.map[current.visited[i][1]][current.visited[i][0]].char = dirToChar[data.map[current.visited[i][1]][current.visited[i][0]].dir];
-			}
-
+		if (current.char === 'E') {
+			best_score = Math.min(best_score, current.score);
 			break;
 		}
-		if (current.score > data.map[current.y][current.x].score) {
-			continue;
-		}
-		data.map[current.y][current.x].score = current.score;
-		data.map[current.y][current.x].turns = current.turns;
-		data.map[current.y][current.x].dir = current.dir;
 
-		for (let i = 0; i < 4; i++) {
-			if (Math.abs(i - current.dir) === 2) {
-				continue;
+		for (let d = current.dir; d < current.dir + 4; d++) {
+			let dir = d % 4; // Prioritize current direction
+			if (Math.abs(current.dir - dir) > 1) continue;
+			let x = current.x + _DIRS[dir][0];
+			let y = current.y + _DIRS[dir][1];
+			if (!isWithinBounds(map, x, y) || map[y][x].char === '#') continue;
+
+			let score = 0;
+			if (dir === current.dir) {
+				score = current.score + 1;
+			} else {
+				score = current.score + 1001;
 			}
 
-			queue = queueNext(queue, current, i, data.map, data.end);
+			let key = `${x},${y}`;
+			if (visited.has(key) && visited.get(key) <= score) continue;
+			visited.set(key, score);
+			queue.push({ char: map[y][x].char, x, y, score, dir});
 		}
+
 	}
 
+	answer = best_score;
 	// High: 617936, 194648, 365200, 208712, 110516
 	return answer
 }
 
-function queueNext(queue, current, dir, map, end) {
-	let x = current.x + _DIRS[dir][0];
-	let y = current.y + _DIRS[dir][1];
-	if (isWithinBounds(map, x, y) && map[y][x].char !== '#') {
+// function queueNext(queue, current, dir, map, end) {
+// 	let x = current.x + _DIRS[dir][0];
+// 	let y = current.y + _DIRS[dir][1];
+// 	if (isWithinBounds(map, x, y) && map[y][x].char !== '#') {
 
-		let new_score = 0;
+// 		let new_score = 0;
 
-		let next = {};
-		if (dir === current.dir) {
-			next.score = current.score + 1;
-			next.turns = current.turns;
-		} else {
-			next.score = current.score + 1001;
-			next.turns = current.turns + 1;
-			map[y][x].char = dirToChar[dir];
-		}
-
-		if (map[y][x].score * map[y][x].turns < next.score * next.turns) {
-			return queue;
-		}
-
-
-		next.x = x;
-		next.y = y;
-		next.char = current.char;
-		next.last_dir = current.dir;
-		next.dir = dir;
-		next.visited = [...current.visited, [x, y]];
+// 		let next = {};
+// 		if (dir === current.dir) {
+// 			next.score = current.score + 1;
+// 			next.turns = current.turns;
+// 		} else {
+// 			next.score = current.score + 1001;
+// 			next.turns = current.turns + 1;
+// 			map[y][x].char = dirToChar[dir];
+// 		}
 
 
 
-		queue.push(next);
-	}
-	return queue;
-}
+
+// 		next.x = x;
+// 		next.y = y;
+// 		next.char = current.char;
+// 		next.last_dir = current.dir;
+// 		next.dir = dir;
+// 		next.visited = [...current.visited, [x, y]];
+
+
+// 		if (map[y][x].score * map[y][x].visited.length < next.score * current.visited.length) {
+// 			// console.log('Skipping:', x, y, map[y][x].score, map[y][x].turns, next.score, next.turns);
+// 			return queue;
+// 		}
+
+
+// 		queue.push(next);
+// 	}
+// 	return queue;
+// }
 
 /**
  * Solves part 2 of the challenge and logs the answer to the console
@@ -139,14 +156,9 @@ function solvePart2(data) {
 function parseInput(input) {
 	let start = [];
 	let end = [];
-	let map = input.split('\n').map((row, y) => {
-		return row.split('').map((col, x) => {
-			if (col === 'S') start = [x, y];
-			if (col === 'E') end = [x, y];
-			return {x, y, char: col, dir: 0, last_dir: 0, score: Infinity, turns: 0, visited: []};
-		})
-	})
-	return {map, start, end};
+	let map = input.split('\n').map((row, y) => row.split(''));
+
+	return map;
 
 }
 // ************ End of Solution Functions ************
