@@ -102,15 +102,21 @@ function solvePart2(registers, program, axs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], ou
 		registers.A = ax;
 
 		let program_out = solvePart1(registers, program).split(',').map(Number);
-		console.log(program_out[0], program.at(-program_out.length), ax);
 
 		if (program_out[0] === program.at(-program_out.length)) {
+			console.log(program_out.join(','), program.join(','), ax);
 			output.push(program_out[0]);
 			let new_axs = [];
 			for (let new_ai = 0; new_ai <= 8; new_ai++) {
 				new_axs.push(ax * 8 + new_ai);
 			}
-			output = solvePart2(registers, program, new_axs, output);
+			let ret = solvePart2(registers, program, new_axs, output);
+			if (ret !== 'No answer found') {
+				answer = ret;
+				break main;
+			}
+
+
 
 			if (output.length === program.length) {
 				if (output.join(',') === program.join(',')) {
